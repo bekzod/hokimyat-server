@@ -1,0 +1,123 @@
+- order: 1
+  position: Toshkent tumani hokimining moliya-iqtisodiyot va kambag‘allikni qisqartirish masalalari bo‘yicha birinchi o‘rinbosari
+  appointment_date: 2024-02-29
+  full_name: RIXSIEV Raximjon Mirkadirovich
+  responsibilities:
+    - moliya
+    - iqtisodiyot
+    - kambag‘allikni qisqartirish
+- order: 2
+  position: Toshkent tumani hokimining qurilish, to‘siqlarsiz muhit yaratish, kommunikatsiyalar, kommunal xo‘jalik, ekologiya va ko‘kalamzorlashtirish masalalari bo‘yicha o‘rinbosari vaqtincha vazifasini bajaruvchi
+  appointment_date: null
+  full_name: BOZORBOYEV Nodirjon Gafurjanovich
+  responsibilities:
+    - qurilish
+    - to‘siqlarsiz muhit yaratish
+    - kommunikatsiyalar
+    - kommunal xo‘jalik
+    - ekologiya
+    - ko‘kalamzorlashtirish
+- order: 3
+  position: Toshkent tumani hokimining o‘rinbosari - investitsiyalar, sanoat va savdo bo‘limi boshligi
+  appointment_date: 2026-02-18
+  full_name: ZARIPOV Rustambek Djalilovich
+  responsibilities:
+    - investitsiyalar
+    - sanoat
+    - savdo
+- order: 4
+  position: Toshkent tumani hokimining qishloq va suv xo‘jaligi masalalari bo‘yicha o‘rinbosari
+  appointment_date: 2023-09-05
+  full_name: OQILJONOV Avazxon Olimjon o‘g‘li
+  responsibilities:
+    - qishloq xo‘jaligi
+    - suv xo‘jaligi
+- order: 5
+  position: Toshkent tumani hokimining yoshlar siyosati, ijtimoiy rivojlantirish, ma’naviy-ma’rifiy ishlar bo‘yicha o‘rinbosari
+  appointment_date: 2023-01-25
+  full_name: SAIDIKARIMOV Ibroxim Islomxodjaevich
+  responsibilities:
+    - yoshlar siyosati
+    - ijtimoiy rivojlantirish
+    - ma’naviy-ma’rifiy ishlar
+- order: 6
+  position: Toshkent tumani hokimining o‘rinbosari - oila va xotin-qizlar bo‘limi boshlig‘i
+  appointment_date: 2024-06-12
+  full_name: KARABAEVA Lola Tulkinovna
+  responsibilities:
+    - oila
+    - xotin-qizlar
+- order: 7
+  position: Toshkent tumani hokimligi tashkiliy-kadrlar guruhi rahbari
+  appointment_date: 2021-11-01
+  full_name: RASHIDOV Sarvar To‘xtasinovich
+  responsibilities:
+    - tashkiliy ishlar
+    - kadrlar
+- order: 8
+  position: Toshkent tumani hokimining yordamchisi
+  appointment_date: 2024-02-01
+  full_name: RASULOV Abdullox Po‘lat o‘g‘li
+  responsibilities:
+    - hokim yordamchisi vazifalari
+- order: 9
+  position: Toshkent tumani hokimining chegara masalalari bo‘yicha yordamchisi
+  appointment_date: 2019-08-15
+  full_name: KARIMOV Qudrat Djiyanovich
+  responsibilities:
+    - chegara masalalari
+- order: 10
+  position: Toshkent tumani hokimligi devonxona mudiri
+  appointment_date: 2017-12-06
+  full_name: BADALOVA Nafisa Samatovna
+  responsibilities:
+    - devonxona
+    - hujjat aylanishi
+- order: 11
+  position: Toshkent tumani hokimligi bosh yuriskonsul’t
+  appointment_date: 2022-04-21
+  full_name: ASRAROV Abdumutal Ergashevich
+  responsibilities:
+    - yuridik masalalar
+- order: 12
+  position: Toshkent viloyati Toshkent tumani hokimligi bosh hisobchisi
+  appointment_date: 2024-06-01
+  full_name: UMAROVA Dildora Ansarbaevna
+  responsibilities:
+    - buxgalteriya
+    - moliyaviy hisob
+- order: 13
+  position: Toshkent tumani hokimining ma’naviy-ma’rifiy ishlar samaradorligini oshirish, davlat tili to‘g‘risidagi qonun hujjatlariga rioya etilishini ta’minlash masalalari bo‘yicha maslahatchisi
+  appointment_date: 2020-02-24
+  full_name: DADAMUXAMEDOVA Umida Najmiddinovna
+  responsibilities:
+    - ma’naviy-ma’rifiy ishlar
+    - davlat tili to‘g‘risidagi qonun hujjatlariga rioya etilishini ta’minlash
+- order: 14
+  position: Toshkent tumani hokimligining axborot rahbari - matbuot kotibi, axborot siyosati masalalari bo‘yicha maslahatchisi
+  appointment_date: 2020-05-15
+  full_name: ISMAILOVA Dilafruz Abdulagzamovna
+  responsibilities:
+    - axborot rahbarligi
+    - matbuot kotibligi
+    - axborot siyosati
+- order: 15
+  position: Toshkent tumani hokimligi ijro intizomi nazorati bo‘yicha bosh mutaxassisi
+  appointment_date: 2022-10-10
+  full_name: Yuldosheva Nafisa Baxtiyarovna
+  responsibilities:
+    - ijro intizomi nazorati
+- order: 16
+  position: Toshkent tumani hokimining raqamli iqtisodiyotni joriy etish bo‘yicha loyihalar menejeri
+  appointment_date: 2026-01-30
+  full_name: Hasanboev Shukurullo Rovshan o‘g‘li
+  responsibilities:
+    - raqamli iqtisodiyotni joriy etish
+    - loyiha boshqaruvi
+- order: 17
+  position: Toshkent tumani hokimining raqamli texnologiyalar va sun’iy intellekt texnologiyalarini rivojlantirish masalalari bo‘yicha maslahatchisi
+  appointment_date: 2026-01-26
+  full_name: XAYITBAEV Bexzod Baxtiyor o‘g‘li
+  responsibilities:
+    - raqamli texnologiyalar
+    - sun’iy intellekt texnologiyalarini rivojlantirish

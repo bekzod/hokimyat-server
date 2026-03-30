@@ -1,9 +1,9 @@
-FROM node:22-alpine AS build
+FROM node:22-slim AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 COPY . .
 RUN npm run build

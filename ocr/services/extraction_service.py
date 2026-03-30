@@ -85,9 +85,8 @@ class ExtractionService:
     orchestration of parallel AI extraction tasks.
     """
 
-    def __init__(self, model_name: Optional[str] = None):
+    def __init__(self):
         settings = get_settings()
-        self.model_name = model_name or settings.default_models
         self.docling_host = settings.docling_host
         self._default_options = _build_extraction_options(settings)
         self._max_page_range = settings.max_page_range
@@ -168,8 +167,8 @@ class ExtractionService:
             try:
                 logger.info("Started %s", task_name)
                 if asyncio.iscoroutinefunction(task_fn):
-                    return await task_fn(self.model_name, *args)
-                return await asyncio.to_thread(task_fn, self.model_name, *args)
+                    return await task_fn(*args)
+                return await asyncio.to_thread(task_fn, *args)
             except Exception as exc:
                 msg = str(exc)
                 logger.error("Error in %s: %s", task_name, msg, exc_info=True)

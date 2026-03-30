@@ -40,10 +40,7 @@ async def test_select_department():
         }
     ]
 
-    # Use a default model name - you may need to adjust this based on your setup
-    model_name = os.getenv("DEFAULT_MODELS", "chat-template")
-
-    print(f"Testing select_department function with model: {model_name}")
+    print("Testing select_department function")
     print("=" * 60)
 
     for i, test_case in enumerate(test_cases, 1):
@@ -52,7 +49,7 @@ async def test_select_department():
         print(f"Input text: {test_case['text'][:100]}...")
 
         try:
-            result = await select_department(model_name, test_case['text'])
+            result = await select_department(test_case['text'])
             print(f"Result: {result}")
 
             if result and result.get('id'):

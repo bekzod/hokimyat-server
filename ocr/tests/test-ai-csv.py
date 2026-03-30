@@ -18,7 +18,7 @@ from library.ai import select_department
 # Semaphore to limit concurrent tasks
 MAX_CONCURRENT_TASKS = 4
 
-async def process_single_test_case(semaphore, model_name, row, case_number):
+async def process_single_test_case(semaphore, row, case_number):
     """Process a single test case with semaphore control"""
     async with semaphore:
         file_hash = row.get('file_hash', 'unknown')
@@ -40,7 +40,7 @@ async def process_single_test_case(semaphore, model_name, row, case_number):
                 return None
 
             # Call the select_department function
-            result = await select_department(model_name, content)
+            result = await select_department(content)
 
             if result and result.get('id'):
                 predicted_department_id = str(result.get('id'))
@@ -117,10 +117,7 @@ async def test_select_department_from_csv(csv_file_path):
         print(f"Error: CSV file not found at {csv_file_path}")
         return
 
-    # Use a default model name - you may need to adjust this based on your setup
-    model_name = os.getenv("DEFAULT_MODELS", "chat-template")
-
-    print(f"Testing select_department function with model: {model_name}")
+    print("Testing select_department function")
     print(f"Reading test cases from: {csv_file_path}")
     print(f"Running with {MAX_CONCURRENT_TASKS} concurrent tasks")
     print("=" * 80)
@@ -146,7 +143,7 @@ async def test_select_department_from_csv(csv_file_path):
 
         # Create tasks for parallel processing
         for row, case_number in valid_rows:
-            task = process_single_test_case(semaphore, model_name, row, case_number)
+            task = process_single_test_case(semaphore, row, case_number)
             tasks.append(task)
 
         print(f"Created {len(tasks)} test tasks")

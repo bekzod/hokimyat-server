@@ -1,10 +1,10 @@
 from openai import AsyncOpenAI
-import json
 import re
 import yaml
 from functools import lru_cache
 from typing import Optional
 import logging
+from pydantic import BaseModel
 
 from core.config import get_settings
 
@@ -29,11 +29,73 @@ openai = AsyncOpenAI(
 
 logger = logging.getLogger(__name__)
 
+MODEL = "gpt-5.4-mini"
+
+
+# ── Pydantic response models for structured outputs ──────────
+
+class AuthorInfo(BaseModel):
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
+    middle_name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    gender: Optional[str] = None
+    phones: list[str] = []
+    date_when_document_was_written: Optional[str] = None
+    email: Optional[str] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
+    district: Optional[str] = None
+    address: Optional[str] = None
+    date_of_issue: Optional[str] = None
+
+class DocumentTypeResponse(BaseModel):
+    type: str = ""
+
+class PersonInfo(BaseModel):
+    first_name: str = ""
+    middle_name: str = ""
+    last_name: str = ""
+
+class CaseInfoResponse(BaseModel):
+    case_number: Optional[str] = None
+    suspect: Optional[PersonInfo] = None
+    victim: Optional[PersonInfo] = None
+    claimant: Optional[PersonInfo] = None
+
+class Article(BaseModel):
+    article: int
+    part: Optional[int] = None
+    clause: Optional[str] = None
+
+class ArticlesResponse(BaseModel):
+    articles: list[Article] = []
+
+class IssuesResponse(BaseModel):
+    issues: list[str] = []
+    keywords: list[str] = []
+
+class DepartmentSelection(BaseModel):
+    department_id: Optional[str] = None
+    reasoning: str = ""
+    confidence: int = 0
+
+class SummaryResponse(BaseModel):
+    summary: str
+
+class EntityTypeResponse(BaseModel):
+    entity_type: str = ""
+
+class RepeatedRequestResponse(BaseModel):
+    is_repeated: bool = False
+    dates: list[str] = []
+
 
 # Precompiled regular expressions for efficiency
 NON_WORD_SPACE_RE = re.compile(r'[^\w\s]')
 MULTI_SPACE_RE = re.compile(r'\s+')
-THINKING_TAG_RE = re.compile(r'<think>.*?</think>', re.DOTALL)
+
 
 # Uzbek Latin transliteration variants (LLM output vs YAML canonical forms)
 _UZBEK_LATIN_VARIANTS = [
@@ -93,68 +155,9 @@ def _fuzzy_normalize(name: str) -> str:
     return s
 
 
-def _extract_json_from_response(response_content: str, func_name: str = "") -> str:
-    """
-    Extract JSON from AI response, stripping thinking tags and other non-JSON content.
-
-    Args:
-        response_content: Raw response from AI model
-        func_name: Name of calling function for logging
-
-    Returns:
-        Cleaned string ready for JSON parsing
-    """
-    if not response_content:
-        return ""
-
-    original_content = response_content
-
-    # Strip thinking tags (Qwen3 thinking mode)
-    response_content = THINKING_TAG_RE.sub('', response_content).strip()
-
-    # If content starts with JSON, return it
-    if response_content.startswith('{') or response_content.startswith('['):
-        return response_content
-
-    # Try to find JSON object in the response
-    json_match = re.search(r'\{[\s\S]*\}', response_content)
-    if json_match:
-        logger.warning("[%s] Extracted JSON from response with non-JSON prefix", func_name)
-        return json_match.group(0)
-
-    # Try to find JSON array
-    json_array_match = re.search(r'\[[\s\S]*\]', response_content)
-    if json_array_match:
-        logger.warning("[%s] Extracted JSON array from response with non-JSON prefix", func_name)
-        return json_array_match.group(0)
-
-    # Warn when response needed cleaning — helps catch model misbehavior
-    if original_content != response_content:
-        logger.warning("[%s] Had to strip non-JSON prefix from AI response", func_name)
-    else:
-        logger.warning("[%s] No JSON found in AI response: %s", func_name, response_content[:200])
-
-    return response_content
 
 
-def _get_params(**kwargs):
-    params = {
-        "temperature": 0,
-        "seed": 42,
-        "response_format": {"type": "json_object"},
-    }
-
-    # Override with any provided kwargs
-    params.update(kwargs)
-
-    return params
-
-
-def _prepare_prompt(content, prompt_type: Optional[str] = None):
-    """Prepare prompt content, appending 'return json' instruction."""
-    if prompt_type == 'select-department':
-        return content.rstrip() + "\n\nreturn json only in following format: { department_id: 'department_id', reasoning: 'your reasoning', confidence: 'value from 0-10' }"
-    return content.rstrip() + "\n\nreturn json"
+REASONING_EFFORT = "medium"
 
 
 
@@ -459,15 +462,15 @@ def find_district_id(district_name: str) -> Optional[int]:
     return None
 
 # @mlflow.trace
-async def extract_author_information(model_name, text):
+async def extract_author_information(text):
 
 
   completion = await openai.chat.completions.create(
-    model=model_name,
+    model=MODEL,
     messages=[
       {
         "role": "user",
-        "content": _prepare_prompt(f"""
+        "content": f"""
           You are NER expert. Extract the complainant's (arizachi/fuqaro/murojaatchi) information from a given legal document.
           IMPORTANT: The author is the citizen who filed the complaint, NOT the government institution or official forwarding it. Use the complainant's residential address, not the institution's address.
           Extract these fields:
@@ -476,7 +479,7 @@ async def extract_author_information(model_name, text):
           - middle_name: complainant's middle name / patronymic (full, not initials)
           - date_of_birth: in DD.MM.YYYY format
           - gender: "male" or "female" (REQUIRED — infer from name/patronymic if not explicit in document)
-          - phones: phone numbers (comma separated if several)
+          - phones: list of phone numbers
           - date_when_document_was_written: in DD.MM.YYYY format
           - email
           - country
@@ -487,35 +490,24 @@ async def extract_author_information(model_name, text):
 
           # Legal Document:
           {text}
-        """)
+        """,
       },
     ],
-    **_get_params(temperature=0.1)
+    response_format=AuthorInfo,
+    reasoning_effort=REASONING_EFFORT,
   )
 
-  response_content = completion.choices[0].message.content
+  parsed = completion.choices[0].message.parsed
+  if not parsed:
+    return {}
 
-  if not response_content:
-    return {}
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "extract_author_information")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in extract_author_information: %s", e)
-    return {}
+  json_object = parsed.model_dump()
 
   logger.info("author_info raw LLM fields: region=%s, district=%s, city=%s, address=%s",
-    json_object.get("region") or json_object.get("Region"),
-    json_object.get("district") or json_object.get("District"),
-    json_object.get("city") or json_object.get("City"),
-    json_object.get("address") or json_object.get("Address"))
-
-  # Unwrap if LLM wrapped fields under an "author" key
-  if "author" in json_object and isinstance(json_object.get("author"), dict):
-    json_object = json_object["author"]
-
-  # Normalize keys to snake_case (LLM sometimes returns "Last name", "Region" etc.)
-  json_object = {k.lower().replace(' ', '_'): v for k, v in json_object.items()}
+    json_object.get("region"),
+    json_object.get("district"),
+    json_object.get("city"),
+    json_object.get("address"))
 
   # Validate and clean extracted data
   # Normalize gender: fallback to patronymic-based inference if LLM left it empty
@@ -538,16 +530,8 @@ async def extract_author_information(model_name, text):
   email = json_object.get("email", "")
   json_object["email"] = email if is_valid_email(email) else ""
 
-  # Consolidate phone fields: LLM may return phones, phone_numbers, or phone
-  raw_phones = json_object.get("phones") or json_object.get("phone_numbers") or json_object.get("phone")
-  if isinstance(raw_phones, str):
-      raw_phones = [p.strip() for p in raw_phones.split(",") if p.strip()]
-  elif not isinstance(raw_phones, list):
-      raw_phones = None
+  raw_phones = json_object.get("phones") or []
   json_object["phones"] = clean_phone(raw_phones)
-  # Remove stale phone fields to avoid confusion
-  json_object.pop("phone_numbers", None)
-  json_object.pop("phone", None)
 
   date_of_birth = json_object.get("date_of_birth", "")
   json_object["date_of_birth"] = normalize_date(date_of_birth)
@@ -639,55 +623,45 @@ async def extract_author_information(model_name, text):
   country = (json_object.get("country", "") or "").replace("Республикаси", "").replace("Respublikasi", "").strip() or None
   json_object["country"] = country
 
-  # Remove non-schema fields the LLM sometimes invents
-  for stale_key in ("phone_numbers", "phone", "document_date"):
-      json_object.pop(stale_key, None)
 
   return json_object
 
 # @mlflow.trace
-async def select_document_type(model_name, text):
+async def select_document_type(text):
 
 
-  completion = await openai.chat.completions.create(
-    model=model_name,
+  completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
       {
         "role": "user",
-        "content": _prepare_prompt(f"""
+        "content": f"""
           Classify the given Document by selecting the most appropriate document type. Reason through the Document first.
           # Document:
           {text}
-          """),
+          """,
       },
     ],
-    **_get_params()
+    response_format=DocumentTypeResponse,
+    reasoning_effort=REASONING_EFFORT,
   )
 
-  response_content = completion.choices[0].message.content
-
-  if not response_content:
+  parsed = completion.choices[0].message.parsed
+  if not parsed:
     return ""
-
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "select_document_type")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in select_document_type: %s", e)
-    return ""
-  return json_object.get("type", "")
+  return parsed.type
 
 
 # @mlflow.trace
-async def extract_case_info(model_name, text):
+async def extract_case_info(text):
 
 
-  completion = await openai.chat.completions.create(
-    model=model_name,
+  completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
       {
         "role": "user",
-        "content": _prepare_prompt(f"""
+        "content": f"""
           Below is an updated version of the instructions that incorporates **claimant** details. In this version, we account for the possibility that the **victim** and **claimant** could be the same individual, or they could be different people.
 
           1. **Identify the Case Number**
@@ -718,153 +692,79 @@ async def extract_case_info(model_name, text):
 
           # Case Description:
           {text}
-        """)
+        """,
       },
     ],
-    **_get_params(top_p=0.8)
+    response_format=CaseInfoResponse,
+    reasoning_effort=REASONING_EFFORT,
   )
-  response_content = completion.choices[0].message.content
 
-  if not response_content:
-    return {}
-
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "extract_case_info")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in extract_case_info: %s", e)
-    return {}
-
-  return json_object
+  parsed = completion.choices[0].message.parsed
+  return parsed.model_dump() if parsed else {}
 
 # @mlflow.trace
-async def extract_articles(model_name, text):
+async def extract_articles(text):
 
 
-  completion = await openai.chat.completions.create(
-    model=model_name,
+  completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
       {
         "role": "user",
-        "content": _prepare_prompt(f"""
-          Identify and extract legal details from a given criminal case description and return a structured JSON with law details. If multiple law articles, parts, or clauses are mentioned, extract each one separately.
+        "content": f"""
+          Identify and extract legal details from a given criminal case description. If multiple law articles, parts, or clauses are mentioned, extract each one separately.
 
           # Steps
 
           1. **Comprehension**: Read through the criminal case description to understand the context and identify legal references.
           2. **Identification**: Locate any text that refers to specific laws, articles, parts, or clauses.
           3. **Extraction**: Extract and differentiate between articles, parts, and clauses mentioned. Multiple mentions should be processed individually.
-          4. **Structure**: Compile the extracted details into a structured JSON format.
-
-          # Output Format
-
-          The output should be in a JSON format structured as follows:
-          ```json
-          {{
-            "articles": [
-              {{
-                "article": [number],
-                "part": [number],
-                "clause": "[letter or number]"
-              }}
-            ]
-          }}
-          ```
-          Repeat the above structure for each article, part, and clause combination found.
 
           # Examples
 
-          **Example 1:**
+          - "168-моддаси 4-кисми 'а' банди" → article=168, part=4, clause="a"
+          - "121-моддаси 3-кисми 'б' банди ва 124-моддаси 1-кисми" → two articles: (121, 3, "b") and (124, 1, null)
 
-          - **Input**: "168-моддаси 4-кисми 'а' банди"
-          - **Output**:
-            ```json
-            {{
-              "articles": [
-                {{
-                  "article": 168,
-                  "part": 4,
-                  "clause": "a"
-                }}
-              ]
-            }}
-            ```
-
-          **Example 2:**
-
-          - **Input**: "121-моддаси 3-кисми 'б' банди ва 124-моддаси 1-кисми"
-          - **Output**:
-            ```json
-            {{
-              "articles": [
-                {{
-                  "article": 121,
-                  "part": 3,
-                  "clause": "b"
-                }},
-                {{
-                  "article": 124,
-                  "part": 1,
-                  "clause": null
-                }}
-              ]
-            }}
-            ```
           # Notes
           - Ensure each legal reference is accurately extracted, including articles, parts, and clauses.
-          - If a clause is not present, it may be marked as `null` in the JSON output.
+          - If a clause is not present, set it to null.
           - Consider regional legal terminology variations when interpreting the case descriptions.
 
           # Criminal Case Description:
           {text}
-        """)
+        """,
       },
     ],
-    **_get_params(top_p=0.8)
+    response_format=ArticlesResponse,
+    reasoning_effort=REASONING_EFFORT,
   )
-  response_content = completion.choices[0].message.content
 
-  if not response_content:
-    return {}
-
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "extract_articles")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in extract_articles: %s", e)
-    return {}
-  return json_object
+  parsed = completion.choices[0].message.parsed
+  return parsed.model_dump() if parsed else {}
 
 # @mlflow.trace
-async def extract_issues(model_name, text):
+async def extract_issues(text):
 
 
-  completion = await openai.chat.completions.create(
-    model=model_name,
+  completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
       {
         "role": "user",
-        "content": _prepare_prompt(f"""
+        "content": f"""
           Extract the main issues and important keywords from the given legal document.
 
           # Legal Document:
           {text}
-          """),
+          """,
       },
     ],
-    **_get_params()
+    response_format=IssuesResponse,
+    reasoning_effort=REASONING_EFFORT,
   )
 
-  response_content = completion.choices[0].message.content
-  if not response_content:
-    return {"issues": [], "keywords": []}
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "extract_issues")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in extract_issues: %s", e)
-    return {"issues": [], "keywords": []}
-  return json_object
+  parsed = completion.choices[0].message.parsed
+  return parsed.model_dump() if parsed else {"issues": [], "keywords": []}
 
 
  #  A) Justice & Security Oversight
@@ -879,15 +779,15 @@ async def extract_issues(model_name, text):
  #  Social sectors, poverty/minors, international/migration, strategy/comms, HR/admin
 	# •	10.1, 10.9, 9, 26, 27, 22, 6, 28
 
-async def _select_department(model_name, departments_yaml, summary):
+async def _select_department(departments_yaml, summary):
 
 
-    completion = await openai.chat.completions.create(
-    model=model_name,
+    completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
         {
         "role": "system",
-        "content": _prepare_prompt(f"""
+        "content": f"""
             Given legal complaint select most appropriate prosecutor's department that is responsible for handling the complaint according to their duties.
 
             For each complaint, perform these reasoning steps before providing your conclusion:
@@ -905,27 +805,21 @@ async def _select_department(model_name, departments_yaml, summary):
 
             Complaint:
             {summary}
-        """, prompt_type='select-department')
+        """,
         },
     ],
-    **_get_params(),
+    response_format=DepartmentSelection,
+    reasoning_effort=REASONING_EFFORT,
     )
-    response_content = completion.choices[0].message.content
-    logger.info("_select_department response: %s", response_content)
-    json_object = None
-    try:
-        cleaned_content = _extract_json_from_response(response_content, "_select_department")
-        json_object = json.loads(cleaned_content)
-    except json.JSONDecodeError as e:
-        logger.error("Failed to parse JSON in _select_department: %s", e)
-        json_object = None
 
-    return json_object
+    parsed = completion.choices[0].message.parsed
+    logger.info("_select_department response: %s", parsed)
+    return parsed.model_dump() if parsed else None
 
 
 
 # @mlflow.trace
-async def select_department(model_name, summary=None):
+async def select_department(summary=None):
   best_result = None
   best_confidence = 0
 
@@ -936,7 +830,7 @@ async def select_department(model_name, summary=None):
   for index, department_chunk in enumerate(chunk_departments(departments_data)):
     departments_yaml = yaml.dump(department_chunk, default_flow_style=False, allow_unicode=True)
 
-    json_object = await _select_department(model_name, departments_yaml, summary)
+    json_object = await _select_department(departments_yaml, summary)
 
     if json_object:
         confidence = int(json_object.get("confidence", 0))
@@ -959,7 +853,7 @@ async def select_department(model_name, summary=None):
 
   if departments and len(departments) > 1 and len(set(confidences)) <= 2:
     departments_yaml = yaml.dump(departments, default_flow_style=False, allow_unicode=True)
-    best_result = await _select_department(model_name, departments_yaml, summary)
+    best_result = await _select_department(departments_yaml, summary)
 
   if best_result:
     best_result["id"] = best_result.get("department_id")
@@ -971,7 +865,7 @@ async def select_department(model_name, summary=None):
 # @mlflow.trace
 
 # @mlflow.trace
-async def summarize(model_name, text, language="Uzbek"):
+async def summarize(text, language="Uzbek"):
   # Count sentences by splitting on sentence-ending punctuation
   sentences = re.split(r'[.!?]+', text.strip())
   # Filter out empty strings and count actual sentences
@@ -981,8 +875,8 @@ async def summarize(model_name, text, language="Uzbek"):
   if sentence_count <= 3:
     return text
 
-  completion = await openai.chat.completions.create(
-    model=model_name,
+  completion = await openai.chat.completions.parse(
+    model=MODEL,
     messages=[
       {
         "role": "user",
@@ -992,31 +886,22 @@ async def summarize(model_name, text, language="Uzbek"):
 
           # Legal document:
           {text}
-
-          Return JSON: {{"summary": "your summary here"}}
           """,
       },
     ],
-    **_get_params(temperature=0.1)
+    response_format=SummaryResponse,
+    reasoning_effort=REASONING_EFFORT,
   )
 
-  response = completion.choices[0].message.content or ""
-  # Extract JSON from response — strips thinking tags and garbage prefixes
-  # (same approach every other AI function uses)
-  cleaned = _extract_json_from_response(response, "summarize")
-  try:
-    json_obj = json.loads(cleaned)
-    return json_obj.get("summary") or json_obj.get("text") or ""
-  except json.JSONDecodeError:
-    logger.warning("summarize: could not parse JSON, returning cleaned text: %s", cleaned[:200])
-    return cleaned
+  parsed = completion.choices[0].message.parsed
+  return parsed.summary if parsed else ""
 
 # @mlflow.trace
-async def get_entity_type(model_name, text):
+async def get_entity_type(text):
 
 
   completion = await openai.chat.completions.create(
-    model=model_name,
+    model=MODEL,
     messages=[
       {
         "role": "user",
@@ -1044,8 +929,7 @@ async def get_entity_type(model_name, text):
     return {}
 
   try:
-    cleaned_content = _extract_json_from_response(response_content, "get_entity_type")
-    json_object = json.loads(cleaned_content)
+    json_object = json.loads(response_content)
   except json.JSONDecodeError as e:
     logger.error("Failed to parse JSON in get_entity_type: %s", e)
     return {}
@@ -1053,11 +937,11 @@ async def get_entity_type(model_name, text):
   return json_object
 
 # @mlflow.trace
-async def check_for_repeated_request(model_name, text):
+async def check_for_repeated_request(text):
 
 
   completion = await openai.chat.completions.create(
-    model=model_name,
+    model=MODEL,
     messages=[
       {
         "role": "user",
@@ -1078,8 +962,7 @@ async def check_for_repeated_request(model_name, text):
     return {}
 
   try:
-    cleaned_content = _extract_json_from_response(response_content, "check_for_repeated_request")
-    json_object = json.loads(cleaned_content)
+    json_object = json.loads(response_content)
   except json.JSONDecodeError as e:
     logger.error("Failed to parse JSON in check_for_repeated_request: %s", e)
     return {}
