@@ -1,4 +1,4 @@
 # ORM models module
-from .pdf import PDF, PDFStatus
+from .pdf import Document, DocumentStatus
 
-__all__ = ["PDF", "PDFStatus"]
+__all__ = ["Document", "DocumentStatus"]

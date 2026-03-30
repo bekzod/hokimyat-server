@@ -1,4 +1,4 @@
 # Repository layer module
-from .pdf_repository import PDFRepository
+from .document_repository import DocumentRepository
 
-__all__ = ["PDFRepository"]
+__all__ = ["DocumentRepository"]

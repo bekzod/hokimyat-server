@@ -199,6 +199,22 @@ services:
     networks:
       - default_network
 
+  frontend:
+    image: ocr-server/frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      OCR_SERVER_PORT: "${OCR_SERVER_PORT:-8000}"
+    depends_on:
+      - ocr_server
+    networks:
+      - default_network
+
   minio:
     image: minio/minio:RELEASE.2025-07-23T15-54-02Z
     container_name: minio

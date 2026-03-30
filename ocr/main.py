@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import get_settings
@@ -41,9 +40,6 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Mount static files
-    application.mount("/front", StaticFiles(directory="front", html=True), name="front")
 
     # Mount API router at /api/ to preserve existing client URLs
     # (e.g. /api/upload-pdf/, /api/status/{id}, /api/health)

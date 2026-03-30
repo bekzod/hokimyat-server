@@ -13,12 +13,12 @@ class OCRServerException(Exception):
         super().__init__(self.message)
 
 
-class PDFNotFoundException(OCRServerException):
-    """Raised when a PDF record is not found in the database."""
+class DocumentNotFoundException(OCRServerException):
+    """Raised when a document record is not found in the database."""
 
     def __init__(self, file_id: str):
         self.file_id = file_id
-        super().__init__(f"PDF with id '{file_id}' not found")
+        super().__init__(f"Document with id '{file_id}' not found")
 
 
 class ValidationException(OCRServerException):
@@ -31,7 +31,9 @@ class ValidationException(OCRServerException):
 class StorageException(OCRServerException):
     """Raised for storage-related errors (MinIO/S3)."""
 
-    def __init__(self, message: str = "Storage error", original_error: Exception = None):
+    def __init__(
+        self, message: str = "Storage error", original_error: Exception = None
+    ):
         self.original_error = original_error
         super().__init__(message)
 
@@ -39,6 +41,8 @@ class StorageException(OCRServerException):
 class ExtractionException(OCRServerException):
     """Raised for document extraction errors (Docling/AI)."""
 
-    def __init__(self, message: str = "Extraction error", original_error: Exception = None):
+    def __init__(
+        self, message: str = "Extraction error", original_error: Exception = None
+    ):
         self.original_error = original_error
         super().__init__(message)

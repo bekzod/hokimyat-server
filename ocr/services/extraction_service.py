@@ -15,22 +15,19 @@ import time
 from typing import Any, Callable, List, Optional
 
 import aiohttp
-
 from core.config import get_settings
 
 # Import AI functions from library/ai.py — these stay in place
 # because they contain complex business logic (fuzzy matching, prompts, etc.)
 from library.ai import (
-    extract_author_information,
-    summarize,
-    select_department,
-    select_category,
     check_for_repeated_request,
-    get_entity_type,
-    select_origin,
-    extract_case_info,
     extract_articles,
+    extract_author_information,
+    extract_case_info,
+    get_entity_type,
     select_document_type,
+
+    summarize,
 )
 
 logger = logging.getLogger(__name__)
@@ -39,10 +36,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_TASKS = [
     "author_info",
     "summary",
-    "department",
     "repeated_info",
-    "category",
-    "origin",
     "entity_type",
 ]
 
@@ -126,7 +120,9 @@ class ExtractionService:
 
         try:
             async with session.post(
-                url, json=payload, timeout=_CLIENT_TIMEOUT,
+                url,
+                json=payload,
+                timeout=_CLIENT_TIMEOUT,
             ) as response:
                 if response.status == 404:
                     logger.warning("API returned 404, returning empty string")
@@ -187,10 +183,7 @@ class ExtractionService:
 
         if "summary" in tasks_to_run:
             tasks.append(("summary", summarize, content))
-        if "department" in tasks_to_run:
-            tasks.append(("department", select_department, content))
-        if "category" in tasks_to_run:
-            tasks.append(("category", select_category, content))
+
         if "author_info" in tasks_to_run:
             # CRITICAL: Use first ~6000 chars of full content so complainant
             # details beyond a cover-letter first page are visible to the LLM.
@@ -198,8 +191,7 @@ class ExtractionService:
             tasks.append(("author_info", extract_author_information, author_input))
         if "document_type" in tasks_to_run:
             tasks.append(("document_type", select_document_type, first_page_content))
-        if "origin" in tasks_to_run:
-            tasks.append(("origin", select_origin, first_page_content))
+
         if "entity_type" in tasks_to_run:
             tasks.append(("entity_type", get_entity_type, first_page_content))
         if "case_info" in tasks_to_run:
@@ -244,11 +236,8 @@ class ExtractionService:
                 if results.get("repeated")
                 else None
             ),
-            "department": results.get("department"),
-            "category": results.get("category"),
             "entity": results.get("entity_type"),
             "document_type": results.get("document_type"),
-            "origin": results.get("origin"),
             "case_info": {
                 **(results.get("case_info") or {}),
                 **(results.get("articles") or {}),

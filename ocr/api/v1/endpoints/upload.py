@@ -9,13 +9,12 @@ Preserves the same URL paths as master:
 import logging
 import time
 
-from fastapi import APIRouter, UploadFile, HTTPException, Depends, Form
+from api.deps import get_document_service
+from core.exceptions import StorageException, ValidationException
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
-
-from api.deps import get_pdf_service
-from core.exceptions import ValidationException, StorageException
-from services.pdf_service import PDFService
-from workers.tasks import process_pdf_task
+from services.document_service import DocumentService
+from workers.tasks import process_document_task
 
 logger = logging.getLogger(__name__)
 
@@ -28,32 +27,20 @@ async def upload_document(
     file: UploadFile,
     tasks: str = Form(
         None,
-        description="Comma separated list of tasks to run (e.g. entity,summarization,department,repeated,category). "
+        description="Comma separated list of tasks to run (e.g. entity,summarization,department,repeated). "
         "If not provided, all tasks are run.",
     ),
-    employee_id: int = Form(
-        None, description="Integer ID of the employee associated with this PDF"
-    ),
-    employment_id: int = Form(
-        None, description="Integer ID of the employment record associated with this PDF"
-    ),
-    doc_type: str = Form(
-        None, description="Type of document being uploaded (e.g. invoice, contract, receipt)"
-    ),
-    pdf_service: PDFService = Depends(get_pdf_service),
+    document_service: DocumentService = Depends(get_document_service),
 ):
     """Upload a document for async processing. Returns file_id for status tracking."""
     task_start_time = time.time()
 
-    logger.debug(f"Raw filename value: {repr(file.filename)} (type: {type(file.filename)})")
+    logger.debug(
+        f"Raw filename value: {repr(file.filename)} (type: {type(file.filename)})"
+    )
 
     try:
-        pdf_record = await pdf_service.upload_document(
-            file=file,
-            employee_id=employee_id,
-            employment_id=employment_id,
-            doc_type=doc_type,
-        )
+        document_record = await document_service.upload_document(file=file)
     except ValidationException as e:
         logger.debug(f"Upload rejected: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -62,18 +49,15 @@ async def upload_document(
         raise HTTPException(status_code=500, detail="Failed to upload file to storage")
 
     # Queue the background processing task
-    process_pdf_task.apply_async(
-        args=[pdf_record.uuid, tasks, task_start_time]
+    process_document_task.apply_async(
+        args=[document_record.uuid, tasks, task_start_time]
     )
 
     return JSONResponse(
         status_code=202,
         content={
             "message": "File received, processing started",
-            "file_id": pdf_record.uuid,
+            "file_id": document_record.uuid,
             "status": "processing",
-            "employee_id": employee_id,
-            "employment_id": employment_id,
-            "doc_type": doc_type,
         },
     )

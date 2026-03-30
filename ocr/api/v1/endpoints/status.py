@@ -7,15 +7,13 @@ Preserves the same URL paths as master:
 """
 
 import logging
-from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Depends, Body
+from api.deps import get_document_service
+from core.exceptions import DocumentNotFoundException, ValidationException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
-
-from api.deps import get_pdf_service
-from core.exceptions import PDFNotFoundException, ValidationException
-from models.pdf import PDFStatus
-from services.pdf_service import PDFService
+from models.pdf import DocumentStatus
+from services.document_service import DocumentService
 
 logger = logging.getLogger(__name__)
 
@@ -25,40 +23,41 @@ router = APIRouter()
 @router.get("/status/{file_id}", tags=["status"])
 async def check_status(
     file_id: str,
-    pdf_service: PDFService = Depends(get_pdf_service),
+    document_service: DocumentService = Depends(get_document_service),
 ):
     """Get document processing status and extracted metadata."""
     try:
-        pdf_record = await pdf_service.get_status(file_id)
-    except PDFNotFoundException:
+        document_record = await document_service.get_status(file_id)
+    except DocumentNotFoundException:
         raise HTTPException(
             status_code=404, detail="File not found or status not available"
         )
 
     response = {
-        "file_id": pdf_record.uuid,
-        "status": pdf_record.status.value,
-        "employee_id": pdf_record.employee_id,
-        "employment_id": pdf_record.employment_id,
-        "doc_type": pdf_record.doc_type,
+        "file_id": document_record.uuid,
+        "status": document_record.status.value,
         "created_at": (
-            pdf_record.created_at.isoformat() if pdf_record.created_at else None
+            document_record.created_at.isoformat()
+            if document_record.created_at
+            else None
         ),
         "updated_at": (
-            pdf_record.updated_at.isoformat() if pdf_record.updated_at else None
+            document_record.updated_at.isoformat()
+            if document_record.updated_at
+            else None
         ),
     }
 
-    if pdf_record.processed_at:
-        response["processed_at"] = pdf_record.processed_at.isoformat()
+    if document_record.processed_at:
+        response["processed_at"] = document_record.processed_at.isoformat()
 
-    if pdf_record.error_message:
-        response["error_message"] = pdf_record.error_message
+    if document_record.error_message:
+        response["error_message"] = document_record.error_message
 
-    if pdf_record.status == PDFStatus.completed:
-        response["content"] = pdf_record.content
-        response["meta"] = pdf_record.meta
-        response["total_page_count"] = pdf_record.total_page_count
+    if document_record.status == DocumentStatus.completed:
+        response["content"] = document_record.content
+        response["meta"] = document_record.meta
+        response["total_page_count"] = document_record.total_page_count
 
     return response
 
@@ -72,30 +71,25 @@ async def manual_update(
             "department": {
                 "old": "Finance",
                 "new": "Accounting",
-                "description": "Department name correction"
+                "description": "Department name correction",
             },
-            "category": {
-                "old": "Invoice",
-                "new": "Receipt",
-                "description": "Document category update"
-            }
         },
     ),
-    pdf_service: PDFService = Depends(get_pdf_service),
+    document_service: DocumentService = Depends(get_document_service),
 ):
     """Manually update or correct extracted metadata."""
     try:
-        pdf_record = await pdf_service.update_manual_input(file_id, payload)
+        document_record = await document_service.update_manual_input(file_id, payload)
     except ValidationException as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except PDFNotFoundException:
+    except DocumentNotFoundException:
         raise HTTPException(status_code=404, detail="File not found")
 
     return JSONResponse(
         status_code=200,
         content={
-            "file_id": pdf_record.uuid,
+            "file_id": document_record.uuid,
             "message": "Metadata updated successfully",
-            "meta": pdf_record.meta,
+            "meta": document_record.meta,
         },
     )

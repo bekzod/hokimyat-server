@@ -10,7 +10,7 @@ load_dotenv()
 
 # Import your Base and models
 from core.database import Base
-from models.pdf import PDF  # noqa: F401
+from models.pdf import Document  # noqa: F401
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config

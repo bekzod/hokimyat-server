@@ -1,5 +1,5 @@
 """
-Celery Tasks — background PDF processing.
+Celery Tasks — background document processing.
 
 Uses the service and repository layers but preserves master's exact
 processing logic: force_ocr, MAX_PAGE_RANGE, author content[:6000], etc.
@@ -12,15 +12,15 @@ import time
 from datetime import datetime, timezone
 
 import aiohttp
-
-from .celery import celery_app
 from core.config import get_settings
 from core.database import AsyncSessionLocal
 from core.storage import get_storage
-from models.pdf import PDFStatus
-from repositories.pdf_repository import PDFRepository
+from models.pdf import DocumentStatus
+from repositories.document_repository import DocumentRepository
 from services.extraction_service import get_extraction_service
 from utils.text import clean_extracted_content
+
+from .celery import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -29,30 +29,30 @@ MAX_WORDS_LIMIT = 20500
 
 
 @celery_app.task(bind=True, soft_time_limit=400, time_limit=610)
-def process_pdf_task(
+def process_document_task(
     self,
     file_id: str,
     tasks_to_run=None,
     task_start_time=None,
 ):
-    """Celery task entry point for PDF processing."""
+    """Celery task entry point for document processing."""
     return asyncio.run(
-        _process_pdf_task_async(file_id, tasks_to_run, task_start_time)
+        _process_document_task_async(file_id, tasks_to_run, task_start_time)
     )
 
 
-async def _process_pdf_task_async(
+async def _process_document_task_async(
     file_id: str,
     tasks_to_run=None,
     task_start_time=None,
 ):
     """
-    Async implementation of PDF processing.
+    Async implementation of document processing.
 
     Orchestrates:
-    1. PDF content extraction via Docling (first page + rest in parallel)
+    1. Document content extraction via Docling (first page + rest in parallel)
     2. AI task execution via ExtractionService
-    3. Result storage via PDFRepository
+    3. Result storage via DocumentRepository
     """
     process_start_time = time.time()
     if task_start_time is None:
@@ -62,15 +62,15 @@ async def _process_pdf_task_async(
     max_page_range = settings.max_page_range
 
     async with AsyncSessionLocal() as db:
-        repository = PDFRepository(db)
+        repository = DocumentRepository(db)
         storage = get_storage()
         extraction_service = get_extraction_service()
 
-        pdf_record = None
+        document_record = None
         try:
             extract_start_time = time.time()
 
-            # Fetch PDF record and generate presigned URL in parallel
+            # Fetch document record and generate presigned URL in parallel
             db_task = repository.get_by_uuid(file_id)
             presigned_url = await storage.generate_presigned_url(
                 file_id, expiration=1800
@@ -91,26 +91,28 @@ async def _process_pdf_task_async(
                     session=session,
                 )
 
-                pdf_record, first_page_content, rest_pages_content = (
-                    await asyncio.gather(db_task, first_page_task, rest_pages_task)
-                )
+                (
+                    document_record,
+                    first_page_content,
+                    rest_pages_content,
+                ) = await asyncio.gather(db_task, first_page_task, rest_pages_task)
 
             logger.info(
                 f"First page content length: {len(first_page_content)} characters"
             )
 
             extract_time = time.time() - extract_start_time
-            logger.info(f"PDF extraction completed in {extract_time:.2f} seconds")
+            logger.info(f"Document extraction completed in {extract_time:.2f} seconds")
 
-            if not pdf_record:
+            if not document_record:
                 logger.error(f"No Document record found for id: {file_id}")
                 return
 
             if not first_page_content:
                 logger.error("Missing md_content for Document with id: %s", file_id)
-                pdf_record.status = PDFStatus.failed
-                pdf_record.error_message = "Missing md_content"
-                pdf_record.processed_at = datetime.now(timezone.utc)
+                document_record.status = DocumentStatus.failed
+                document_record.error_message = "Missing md_content"
+                document_record.processed_at = datetime.now(timezone.utc)
                 await db.commit()
                 return
 
@@ -118,8 +120,8 @@ async def _process_pdf_task_async(
             content = first_page_content + "<<Page break>>" + rest_pages_content
             page_count = content.count("<<Page break>>")
             content = re.sub(r"<!-- image -->|<<Page break>>", "", content)
-            pdf_record.content = content
-            pdf_record.total_page_count = page_count + 1
+            document_record.content = content
+            document_record.total_page_count = page_count + 1
 
             # Clean and truncate content for AI processing
             first_page_content = clean_extracted_content(first_page_content)[:3200]
@@ -152,20 +154,20 @@ async def _process_pdf_task_async(
                 "ai_processing_time": round(ai_process_time, 2),
             }
 
-            pdf_record.meta = meta
-            pdf_record.status = PDFStatus.completed
-            pdf_record.processed_at = datetime.now(timezone.utc)
+            document_record.meta = meta
+            document_record.status = DocumentStatus.completed
+            document_record.processed_at = datetime.now(timezone.utc)
             await db.commit()
 
             total_time = time.time() - task_start_time
             logger.info(
-                f"Finished processing PDF with id: {file_id} in {total_time:.2f} seconds"
+                f"Finished processing document with id: {file_id} in {total_time:.2f} seconds"
             )
         except BaseException as e:
-            logger.error(f"Error processing PDF with id: {file_id}", exc_info=True)
-            if pdf_record:
-                pdf_record.status = PDFStatus.failed
-                pdf_record.error_message = str(e)
-                pdf_record.processed_at = datetime.now(timezone.utc)
+            logger.error(f"Error processing document with id: {file_id}", exc_info=True)
+            if document_record:
+                document_record.status = DocumentStatus.failed
+                document_record.error_message = str(e)
+                document_record.processed_at = datetime.now(timezone.utc)
                 await db.commit()
             raise

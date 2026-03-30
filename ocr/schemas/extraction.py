@@ -35,22 +35,22 @@ class AuthorInformation(BaseModel):
     last_name: Optional[str] = Field(None, description="Last name of the author")
     first_name: Optional[str] = Field(None, description="First name of the author")
     middle_name: Optional[str] = Field(None, description="Middle name of the author")
-    date_of_birth: Optional[str] = Field(None, description="Date of birth in DD.MM.YYYY format")
+    date_of_birth: Optional[str] = Field(
+        None, description="Date of birth in DD.MM.YYYY format"
+    )
     gender: Optional[Gender] = Field(None, description="Gender: male or female")
     phones: Optional[List[str]] = Field(None, description="Phone numbers")
-    date_of_issue: Optional[str] = Field(None, description="Date when document was written in DD.MM.YYYY format")
+    date_of_issue: Optional[str] = Field(
+        None, description="Date when document was written in DD.MM.YYYY format"
+    )
     email: Optional[str] = Field(None, description="Email address")
     city: Optional[str] = Field(None, description="City")
     country: Optional[str] = Field("Uzbekistan")
     region: Optional[str] = Field(None, description="Region in latin letters")
     district: Optional[str] = Field(None, description="District in latin letters")
-    address: Optional[str] = Field(None, description="Address without district and region")
-
-
-class DepartmentSelection(BaseModel):
-    department_id: str = Field(..., description="ID of the selected department")
-    reasoning: str = Field(..., description="Reasoning for the department selection")
-    confidence: int = Field(..., description="Confidence score (0-10) for the department selection")
+    address: Optional[str] = Field(
+        None, description="Address without district and region"
+    )
 
 
 class EntityInformation(BaseModel):
@@ -60,22 +60,28 @@ class EntityInformation(BaseModel):
 
 class RepeatedRequestCheck(BaseModel):
     is_repeated: bool = Field(..., description="Whether this is a repeated complaint")
-    dates: Optional[List[str]] = Field(None, description="List of dates when previous complaints were submitted in DD.MM.YYYY format")
-
-
-class CategorySelection(BaseModel):
-    category_id: str = Field(..., description="ID of the selected category")
-    reasoning: str = Field(..., description="Reasoning for the category selection")
+    dates: Optional[List[str]] = Field(
+        None,
+        description="List of dates when previous complaints were submitted in DD.MM.YYYY format",
+    )
 
 
 class DocumentType(BaseModel):
-    type: Optional[LegalType] = Field(None, description="Legal document type classification")
-    confidence: float = Field(..., description="Confidence score for the classification")
+    type: Optional[LegalType] = Field(
+        None, description="Legal document type classification"
+    )
+    confidence: float = Field(
+        ..., description="Confidence score for the classification"
+    )
 
 
 class IssueExtraction(BaseModel):
-    issues: List[str] = Field(default_factory=list, description="List of main issues in the document")
-    keywords: List[str] = Field(default_factory=list, description="List of important keywords")
+    issues: List[str] = Field(
+        default_factory=list, description="List of main issues in the document"
+    )
+    keywords: List[str] = Field(
+        default_factory=list, description="List of important keywords"
+    )
 
 
 class Article(BaseModel):
@@ -85,7 +91,9 @@ class Article(BaseModel):
 
 
 class ArticleExtraction(BaseModel):
-    articles: List[Article] = Field(default_factory=list, description="List of extracted legal articles")
+    articles: List[Article] = Field(
+        default_factory=list, description="List of extracted legal articles"
+    )
 
 
 class Person(BaseModel):
@@ -101,6 +109,3 @@ class CaseInformation(BaseModel):
     claimant: Optional[Person] = Field(None, description="Claimant information")
 
 
-class OriginSelection(BaseModel):
-    origin_id: int = Field(..., description="ID of the selected origin")
-    reasoning: str = Field(..., description="Reasoning for the origin selection")

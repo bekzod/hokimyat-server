@@ -12,10 +12,10 @@ from schemas.extraction import (
     DepartmentSelection,
     EntityInformation,
     RepeatedRequestCheck,
-    CategorySelection,
+
     DocumentType,
     IssueExtraction,
-    OriginSelection,
+
     ArticleExtraction,
     CaseInformation
 )
@@ -182,47 +182,6 @@ def _prepare_prompt(content, prompt_type: Optional[str] = None):
     return content
 
 
-def _format_grouped_categories(raw_yaml: str) -> str:
-    """Format flat category YAML into grouped sections for better LLM navigation."""
-    # Section definitions: (header, start_id, end_id)
-    sections = [
-        ("## Social Issues (1-31)", 1, 31),
-        ("## Economy, Construction, Land, Banking (32-55)", 32, 55),
-        ("## Agriculture (56-65)", 56, 65),
-        ("## Tax, Customs, Entrepreneurship (66-77)", 66, 77),
-        ("## Minors / Children (78-90)", 78, 90),
-        ("## Communal / Utilities: electricity, gas, water, heating (91-105)", 91, 105),
-        ("## Crime Prevention, Fraud, Passport (106-112)", 106, 112),
-        ("## Criminal Investigation & Prosecution — by agency (113-140)", 113, 140),
-        ("## Detention, Torture, Press Freedom (141-150)", 141, 150),
-        ("## Courts (151-156)", 151, 156),
-        ("## Enforcement Bureau (157-160)", 157, 160),
-        ("## Penal System (161-164)", 161, 164),
-        ("## Law Enforcement Employee Misconduct (165-169)", 165, 169),
-        ("## Prosecutor Office: reception, employee conduct (170-179)", 170, 179),
-        ("## International Legal Issues (180-185)", 180, 185),
-        ("## Prosecutor Personnel / HR (186-190)", 186, 190),
-        ("## Other (191-193)", 191, 193),
-    ]
-    # Parse the YAML lines into id→name map
-    entries = {}
-    for line in raw_yaml.splitlines():
-        line = line.strip()
-        if not line or ':' not in line:
-            continue
-        code, name = line.split(':', 1)
-        code = code.strip()
-        if code.isdigit():
-            entries[int(code)] = f"{code}: {name.strip()}"
-
-    result = []
-    for header, start, end in sections:
-        result.append(header)
-        for i in range(start, end + 1):
-            if i in entries:
-                result.append(entries[i])
-        result.append("")
-    return "\n".join(result)
 
 @lru_cache(maxsize=None)
 def _load_yaml(path: str) -> str:
@@ -1033,135 +992,8 @@ async def select_department(model_name, summary=None):
 
   return {}
 
-# @mlflow.trace
-async def select_origin(model_name, text):
-  origins_yaml = _load_yaml("data/doc-origins.yaml")
-  json_schema = OriginSelection.model_json_schema()
-
-  completion = await openai.chat.completions.create(
-    model=model_name,
-    messages=[
-      {
-        "role": "user",
-        "content": _prepare_prompt(f"""
-          Select the most appropriate origin from the provided list based on the document content.
-
-          # Origins:
-          {origins_yaml}
-
-          # Document:
-          {text}
-          """)
-      },
-    ],
-    **_get_params(json_schema, False)
-  )
-
-  response_content = completion.choices[0].message.content
-
-  if not response_content:
-    return {}
-
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "select_origin")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in select_origin: %s", e)
-    return {}
-
-  # Handle different field names from LLM
-  origin_id = json_object.get("origin_id") or json_object.get("id") or json_object.get("origin")
-  if origin_id:
-    json_object["id"] = origin_id
-    json_object.pop("origin_id", None)
-  return json_object
 
 # @mlflow.trace
-async def select_category(model_name, text):
-  raw_yaml = _load_yaml("data/legal-category.yaml")
-  categories_yaml = _format_grouped_categories(raw_yaml)
-
-  json_schema = CategorySelection.model_json_schema()
-
-  completion = await openai.chat.completions.create(
-    model=model_name,
-    messages=[
-      {
-        "role": "user",
-        "content": _prepare_prompt(f"""
-          You are a legal document categorization expert for Uzbekistan's Prosecutor's Office.
-
-          # Task
-          Select the single most appropriate category NUMBER for the document below.
-
-          # Instructions
-          1. Read the document carefully
-          2. Identify the ACTION or REQUEST the author is making — what do they want?
-             - Gas, electricity, water, heating, communal issues → Communal/Utilities section (91-105)
-             - Job application/transfer → employment categories (186-190)
-             - Complaint about a SPECIFIC employee's behavior → employee misconduct categories:
-               * ИИБ/police employee → 167, prosecutor employee → 176, ДХХ employee → 166, court → 168
-             - Court decision not enforced, bailiff (ижрочи) inaction/bias → Enforcement Bureau (157-160)
-             - Complaint about a crime committed against the author → crime categories (106-140)
-             - Complaint about an institution's process/decision → institutional categories
-             - Land, construction, housing → Economy section (32-55)
-          3. KEY RULE: If the complaint names a specific person and their bad behavior (drunk, rude, corrupt, negligent), use the EMPLOYEE MISCONDUCT category for that person's agency — NOT a general crime/prevention category
-          4. Do NOT categorize based on which institution is mentioned — categorize based on WHAT the person is asking for
-          5. Categories with sequential IDs often form parent→child groups (e.g. 186 is general, 187-189 are subtypes).
-             After finding a matching category, ALWAYS check the 3-5 IDs right after it — if a more specific subcategory fits, use that instead.
-          6. FIRST identify the correct SECTION heading, THEN pick the specific category within it
-          7. Return ONLY the numeric category ID (integer)
-
-          # Categories (grouped by section — ID: Name in Uzbek):
-          {categories_yaml}
-
-          # Document:
-          {text}
-
-          Return JSON: {{"category_id": <integer>, "reasoning": "<brief reason>"}}
-          """)
-      },
-    ],
-    **_get_params(json_schema, False, temperature=0.1)
-  )
-
-  response_content = completion.choices[0].message.content
-  logger.info("select_category response: %s", response_content)
-
-  if not response_content:
-    return {}
-
-  try:
-    cleaned_content = _extract_json_from_response(response_content, "select_category")
-    json_object = json.loads(cleaned_content)
-  except json.JSONDecodeError as e:
-    logger.error("Failed to parse JSON in select_category: %s", e)
-    return {}
-
-  # Normalize to consistent {"category": "<id>", "id": "<id>"} format
-  category_id = (
-      json_object.get("category_id")
-      or json_object.get("id")
-      or json_object.get("category")
-      or json_object.get("answer")
-      or json_object.get("категория")
-      or json_object.get("категория_id")
-  )
-  if category_id:
-    category_id = str(category_id).strip()
-    # If LLM returned a category name instead of a number, reverse-lookup from YAML
-    if not category_id.isdigit():
-      for line in raw_yaml.splitlines():
-        line = line.strip()
-        if not line or ':' not in line:
-          continue
-        code, name = line.split(':', 1)
-        code = code.strip()
-        if code.isdigit() and category_id in name.strip():
-          category_id = code
-          break
-    return {"category": category_id, "id": category_id}
-  return json_object
 
 # @mlflow.trace
 async def summarize(model_name, text, language="Uzbek"):
