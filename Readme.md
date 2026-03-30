@@ -21,8 +21,6 @@
 
 ## Environment variables
 
-- `VLLM_STRUCTURED_OUTPUT_ENABLED`: Controls structured output support. Set to
-  `"true"` to enable or `"false"` to disable (case-insensitive). Defaults to
   `true` when unset.
 
 ### docling CPU tuning
@@ -53,4 +51,3 @@ Install the minimal test dependencies and run pytest:
 pip install -r tests/requirements.txt
 pytest -q
 ```
-

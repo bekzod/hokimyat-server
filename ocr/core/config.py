@@ -25,11 +25,11 @@ class Settings(BaseSettings):
     redis_url: str
 
     # AI / vLLM
-    vllm_url: str = "http://vllm:8000"
+
     openai_api_base_url: str = ""
     openai_api_key: str = ""
     default_models: str = ""
-    vllm_structured_output_enabled: bool = True
+
 
     # Docling
     docling_host: str = "http://docling:5001"

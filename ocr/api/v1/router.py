@@ -16,5 +16,5 @@ api_router.include_router(upload.router, tags=["upload"])
 # /api/status/{file_id} and /api/manual-update/{file_id}
 api_router.include_router(status.router, tags=["status"])
 
-# /api/health and /api/ai-health
+# /api/health
 api_router.include_router(health.router, tags=["health"])

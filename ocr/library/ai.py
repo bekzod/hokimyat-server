@@ -7,18 +7,7 @@ from typing import Optional
 import logging
 
 from core.config import get_settings
-from schemas.extraction import (
-    AuthorInformation,
-    DepartmentSelection,
-    EntityInformation,
-    RepeatedRequestCheck,
 
-    DocumentType,
-    IssueExtraction,
-
-    ArticleExtraction,
-    CaseInformation
-)
 from utils.text import (
     is_cyrillic,
     is_latin,
@@ -40,8 +29,6 @@ openai = AsyncOpenAI(
 
 logger = logging.getLogger(__name__)
 
-# Configuration
-VLLM_STRUCTURED_OUTPUT_ENABLED = _settings.vllm_structured_output_enabled
 
 # Precompiled regular expressions for efficiency
 NON_WORD_SPACE_RE = re.compile(r'[^\w\s]')
@@ -150,22 +137,12 @@ def _extract_json_from_response(response_content: str, func_name: str = "") -> s
     return response_content
 
 
-def _get_params(json_schema, isThinkingEnabled, **kwargs):
+def _get_params(**kwargs):
     params = {
         "temperature": 0,
         "seed": 42,
+        "response_format": {"type": "json_object"},
     }
-
-    if json_schema:
-        if VLLM_STRUCTURED_OUTPUT_ENABLED:
-            params["extra_body"] = {"guided_json": json_schema }
-        else:
-            params["response_format"] = {"type": "json_object"}
-    else:
-        if VLLM_STRUCTURED_OUTPUT_ENABLED:
-            params["extra_body"] = {"thinking": isThinkingEnabled}
-        else:
-            params["response_format"] = {"type": "json_object"}
 
     # Override with any provided kwargs
     params.update(kwargs)
@@ -174,12 +151,10 @@ def _get_params(json_schema, isThinkingEnabled, **kwargs):
 
 
 def _prepare_prompt(content, prompt_type: Optional[str] = None):
-    """Prepare prompt content, appending 'return json' when structured output is disabled."""
-    if not VLLM_STRUCTURED_OUTPUT_ENABLED:
-        if prompt_type == 'select-department':
-            return content.rstrip() + "\n\nreturn json only in following format: { department_id: 'department_id', reasoning: 'your reasoning', confidence: 'value from 0-10' }"
-        return content.rstrip() + "\n\nreturn json"
-    return content
+    """Prepare prompt content, appending 'return json' instruction."""
+    if prompt_type == 'select-department':
+        return content.rstrip() + "\n\nreturn json only in following format: { department_id: 'department_id', reasoning: 'your reasoning', confidence: 'value from 0-10' }"
+    return content.rstrip() + "\n\nreturn json"
 
 
 
@@ -485,7 +460,7 @@ def find_district_id(district_name: str) -> Optional[int]:
 
 # @mlflow.trace
 async def extract_author_information(model_name, text):
-  json_schema = AuthorInformation.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -515,7 +490,7 @@ async def extract_author_information(model_name, text):
         """)
       },
     ],
-    **_get_params(json_schema, False, temperature=0.1)
+    **_get_params(temperature=0.1)
   )
 
   response_content = completion.choices[0].message.content
@@ -672,7 +647,7 @@ async def extract_author_information(model_name, text):
 
 # @mlflow.trace
 async def select_document_type(model_name, text):
-  json_schema = DocumentType.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -686,7 +661,7 @@ async def select_document_type(model_name, text):
           """),
       },
     ],
-    **_get_params(json_schema, False)
+    **_get_params()
   )
 
   response_content = completion.choices[0].message.content
@@ -705,7 +680,7 @@ async def select_document_type(model_name, text):
 
 # @mlflow.trace
 async def extract_case_info(model_name, text):
-  json_schema = CaseInformation.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -746,7 +721,7 @@ async def extract_case_info(model_name, text):
         """)
       },
     ],
-    **_get_params(json_schema, False, top_p=0.8)
+    **_get_params(top_p=0.8)
   )
   response_content = completion.choices[0].message.content
 
@@ -764,7 +739,7 @@ async def extract_case_info(model_name, text):
 
 # @mlflow.trace
 async def extract_articles(model_name, text):
-  json_schema = ArticleExtraction.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -845,7 +820,7 @@ async def extract_articles(model_name, text):
         """)
       },
     ],
-    **_get_params(json_schema, False, top_p=0.8)
+    **_get_params(top_p=0.8)
   )
   response_content = completion.choices[0].message.content
 
@@ -862,7 +837,7 @@ async def extract_articles(model_name, text):
 
 # @mlflow.trace
 async def extract_issues(model_name, text):
-  json_schema = IssueExtraction.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -877,7 +852,7 @@ async def extract_issues(model_name, text):
           """),
       },
     ],
-    **_get_params(json_schema, False)
+    **_get_params()
   )
 
   response_content = completion.choices[0].message.content
@@ -905,7 +880,7 @@ async def extract_issues(model_name, text):
 	# •	10.1, 10.9, 9, 26, 27, 22, 6, 28
 
 async def _select_department(model_name, departments_yaml, summary):
-    json_schema = DepartmentSelection.model_json_schema()
+
 
     completion = await openai.chat.completions.create(
     model=model_name,
@@ -933,7 +908,7 @@ async def _select_department(model_name, departments_yaml, summary):
         """, prompt_type='select-department')
         },
     ],
-    **_get_params(json_schema, True),
+    **_get_params(),
     )
     response_content = completion.choices[0].message.content
     logger.info("_select_department response: %s", response_content)
@@ -1022,7 +997,7 @@ async def summarize(model_name, text, language="Uzbek"):
           """,
       },
     ],
-    **_get_params(None, False, temperature=0.1)
+    **_get_params(temperature=0.1)
   )
 
   response = completion.choices[0].message.content or ""
@@ -1038,7 +1013,7 @@ async def summarize(model_name, text, language="Uzbek"):
 
 # @mlflow.trace
 async def get_entity_type(model_name, text):
-  json_schema = EntityInformation.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -1060,7 +1035,7 @@ async def get_entity_type(model_name, text):
         """)
       },
     ],
-    **_get_params(json_schema, False, top_p=0.7)
+    **_get_params(top_p=0.7)
   )
 
   response_content = completion.choices[0].message.content
@@ -1079,7 +1054,7 @@ async def get_entity_type(model_name, text):
 
 # @mlflow.trace
 async def check_for_repeated_request(model_name, text):
-  json_schema = RepeatedRequestCheck.model_json_schema()
+
 
   completion = await openai.chat.completions.create(
     model=model_name,
@@ -1094,7 +1069,7 @@ async def check_for_repeated_request(model_name, text):
           """),
       },
     ],
-    **_get_params(json_schema, False)
+    **_get_params()
   )
 
   response_content = completion.choices[0].message.content
