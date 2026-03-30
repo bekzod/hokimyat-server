@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_STORE
+models/*
+.env
+ai_response.json
+uploads/
+ocr/tests/data/*
+uploads
+ocr/test-results.txt

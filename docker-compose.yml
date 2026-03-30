@@ -1,0 +1,224 @@
+networks:
+  default_network:
+    name: ocr_default_network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/01-init-databases.sh:/docker-entrypoint-initdb.d/01-init-databases.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default_network
+
+  alembic:
+    image: ocr-server/alembic:latest
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    container_name: alembic
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "${OCR_SERVER_DATABASE_URL}"
+    volumes:
+      - ./ocr/alembic:/app/alembic
+      - ./ocr/alembic.ini:/app/alembic.ini
+    command: >
+      sh -c "
+      alembic upgrade head
+      "
+    networks:
+      - default_network
+
+  postgres_backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: postgres_backup
+    restart: always
+    env_file:
+      - .env
+    environment:
+      SCHEDULE: "0 3 * * *" # Every day at 3 AM
+      BACKUP_KEEP_DAYS: "2"
+      BACKUP_KEEP_WEEKS: "0"
+      BACKUP_KEEP_MONTHS: "0"
+    volumes:
+      - ../database_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default_network
+
+  redis:
+    image: redis:7.4.1
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - default_network
+
+  ocr_server:
+    image: ocr-server/app:latest
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    container_name: ocr_server
+    restart: unless-stopped
+    ports:
+      - "${OCR_SERVER_PORT:-8000}:${OCR_SERVER_PORT:-8000}"
+    depends_on:
+      - postgres
+      - redis
+      - alembic
+      - celery_worker
+    env_file:
+      - .env
+    volumes:
+      - ./ocr:/app
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${OCR_SERVER_PORT}"
+      DATABASE_URL: "${OCR_SERVER_DATABASE_URL}"
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://127.0.0.1:${OCR_SERVER_PORT}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - default_network
+
+  celery_worker:
+    image: ocr-server/celery:latest
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY}
+      AWS_S3_VERIFY_SSL: "false"
+      DATABASE_URL: "${OCR_SERVER_DATABASE_URL}"
+    depends_on:
+      - postgres
+      - redis
+      - docling
+      - init-minio
+    command: >
+      sh -c "
+        celery -A workers.tasks worker --loglevel=debug --concurrency=3
+      "
+    volumes:
+      - ./ocr:/app
+    healthcheck:
+      test: ["CMD", "bash", "-c", "celery -A workers.tasks status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - default_network
+
+  docling:
+    image: ocr-server/docling:latest
+    build:
+      dockerfile: docling.Dockerfile
+    container_name: docling
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    environment:
+      - DOCLING_SERVE_ENABLE_UI=false
+      - DOCLING_NUM_THREADS=4
+      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=2
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:5001/health || exit 1"]
+      interval: 10s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+    networks:
+      - default_network
+    restart: unless-stopped
+
+  init-minio:
+    image: minio/mc
+    env_file:
+      - .env
+    environment:
+      MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME}"
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+      MINIO_ENDPOINT: "${MINIO_ENDPOINT}"
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        sleep 5;
+        mc alias set minio ${MINIO_ENDPOINT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+        if ! mc ls minio/${MINIO_BUCKET_NAME}; then
+          mc mb minio/${MINIO_BUCKET_NAME}
+        else
+          echo 'bucket already exists'
+        fi
+        exit 0;
+      "
+    networks:
+      - default_network
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9001:9000"
+      - "9090:9090"
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9090"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - default_network
+

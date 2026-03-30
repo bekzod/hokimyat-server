@@ -1,0 +1,359 @@
+- id: 16.1
+  name: Oversight of the Internal Affairs
+  duties:
+    - Handle issues within Internal Affairs related to:
+        - legality of key procedural decisions in criminal cases (initiation/refusal, suspect or accused status, suspension or termination, charging without sufficient evidence)
+        - unlawful use or denial of detention, bail, or personal guarantees
+        - unlawful detention, placement, and conditions in temporary holding or special facilities
+        - procedural violations in searches and investigative actions
+        - use of torture or coercion by internal affairs officers
+        - failure to act on citizen complaints and referrals (incl. private-sector fraud cases sent to law enforcement)
+        - unlawful preventive registration and abuse of administrative supervision powers
+        - misuse of authority by traffic patrol officers
+        - unjustified refusal to issue passports or identification documents
+        - mishandling of civil or economic cases forwarded for enforcement
+        - unlawful detention without due process (covered within detention/placement/conditions)
+        - failure to recover or assess damages caused by criminal acts
+        - enforcement of a debt collection from citizens
+        - investigate cases of failure to investigate rape
+    - Personnel discipline and HR measures concerning Internal Affairs employees (dismissals, disciplinary actions, reinstatement).
+    - Investigate and intervene in cases where Uzbek citizens are allegedly subjected to unlawful detention, prosecution, or procedural violations in Russia.
+
+- id: 15
+  name: Oversight of the Investigative Divisions of the Prosecutor’s Office
+  duties:
+    - Oversee and, where authorized, conduct pre-investigation checks and preliminary investigations (including in the Economic Crimes Department).
+    - Oversee serious-incident investigations, including:
+        - maternal and child deaths
+        - disappearances and unidentified bodies
+        - suicides and attempted suicides (especially involving minors)
+        - intentional homicides and attempted murders
+    - Ensure compliance with criminal, procedural, and other legal requirements
+    - improve investigative quality and methods
+    - enhance investigators’ skills and qualifications
+    - Investigate cases involving torture and inhumane or degrading treatment
+    - Review decisions related to initiating criminal cases against business entities
+    - Recover damages caused to individuals, legal entities, and the state during investigations
+    - Ensure timely and accurate entry of data into the 'Electronic Criminal-Legal Statistics' system
+    - Manage the storage, transfer, and accounting of physical evidence
+    - Handle citizen complaints and requests related to criminal cases
+    - Address misconduct by prosecutorial authorities and apply disciplinary measures to responsible employees
+    - Address abuse of administrative supervision powers
+
+- id: 10.2
+  name: Oversight of the economic sphere
+  duties:
+    - Oversee enforcement of court decisions in civil and economic matters, including:
+        - complaints against inaction or misconduct by Compulsory Enforcement Bureau (MIB) officers
+        - execution of property-related court rulings and compliance with judicial orders involving vehicles, assets, or other material obligations
+    - Address dissatisfaction with complaint handling and staff actions in ministries and agencies.
+    - Assist with opening bank cards and clarifying account deductions.
+    - Handle issues and disputes related to:
+        - application of economic legislation and inspections by the Ministry of Economy and Finance
+        - actions of Central Bank and commercial bank management, credit allocation/formalization
+        - state procurement laws
+        - transport regulation/licensing and actions of the transport ministry and related entities
+        - multi-story housing and communal services management (repairs, maintenance, heating; financial and staffing issues)
+        - auctioning land in mining and geology; state property privatization
+        - unauthorized construction in housing
+        - insurance and leasing organizations
+    - Administer water supply matters: disconnection/reconnection due to debts, consumption monitoring, and related violations.
+
+- id: 10.3
+  name: Oversight of Foreign Trade, Investments, and Entrepreneurship
+  duties:
+    - Support entrepreneurs and protect their rights, including facilitating credit allocation and extensions of repayment terms.
+    - Oversee implementation of laws on investment and foreign economic activities (including export issues and integration of foreign investments).
+    - Address issues in industrial zones (tax/customs benefits, infrastructure improvements).
+    - Ensure effective interagency coordination to streamline support, enforcement, and escalation in cases involving trade, investment, and entrepreneurial disputes.
+    - Promote transparency and integrity in foreign trade and investment processes to build investor confidence and prevent abuse or corruption.
+    - Provide proactive guidance and early-warning support to entrepreneurs and investors to prevent disputes, including education on rights, standard practices, and risk indicators.
+
+- id: 10.8
+  name: Oversight in the Sphere of Combating the Shadow Economy
+  duties:
+    - Oversee implementation of state programs related to the shadow economy.
+    - Handle issues related to:
+        - methods/channels of shadow-economy formation and economic impact
+        - failure of responsible bodies to combat the shadow economy
+    - Ensure correct application, calculation, and collection of taxes; address excessive enforcement.
+    - Monitor actions of the State Financial Control Inspection and its regional departments.
+    - Supervise conduct of market and trade complex officials.
+
+- id: 10.9
+  name: Oversight of Reducing Poverty and Social Protection of the Population
+  duties:
+    - Oversee implementation of legislation in poverty reduction and social protection.
+    - Provide social protection for vulnerable populations, including the elderly and those in need of care.
+    - Collaborate with the Social Inspection on inclusion/exclusion in the Social Protection Unified Registry.
+    - Ensure correct and timely delivery of benefits and other social payments by the National Social Protection Agency, ensuring aid reaches intended recipients.
+    - Oversee legislation related to medical-social assistance for persons with disabilities.
+    - Address appeals concerning violations of legislation on rehabilitation and psychological support for human-trafficking victims.
+
+- id: 10.1
+  name: Social Sector Oversight
+  duties:
+    - Monitor compliance with legislation across social-sector agencies.
+    - Address staff misconduct across agencies (healthcare negligence/fatalities, financial misconduct/budget misuse, other misconduct).
+    - Oversee employment and labor-law compliance within agency systems (wages, reinstatement, unjustified rejections, working conditions, forced labor, wage grading).
+    - Administrative services and complaints:
+        - legality of public-service delivery and denials
+        - complaint handling and agency response letters
+        - digitalization in agency activities
+        - telecommunications and postal service quality
+    - Education governance:
+        - compliance with State Language Law in agencies
+        - adherence to education laws/standards/assessment; accreditation and licensing of higher/professional education institutions
+        - curricula, educational materials, and library resources
+        - evaluate education quality and monitor processes in higher education and research institutions
+        - investigate corruption in higher education and research institutions
+        - evaluate higher-education faculty; facilitate retraining/professional development
+        - student lifecycle:
+            - admissions/transfer/accommodation
+            - scholarship competitions
+            - national certification/testing processes
+        - recognition of foreign higher-education diplomas and apostille placement on educational documents
+        - TV series/programs and creative participation matters related to education/media (as applicable)
+    - Social programs and employment support:
+        - manage subsidies and unemployment benefits; training for unemployed persons under specific programs
+        - inclusion/exclusion in social registers; legitimacy of social assistance; lawful expenditure of program funds
+        - address incorrect calculation or non-inclusion of work experience in the Unified National Labor System
+        - pensions: assignments, payments, recalculations, and denials
+    - Healthcare access and accountability:
+        - assistance in obtaining sanatorium vouchers and medical treatment
+        - provision of preferential medicines/treatment assistance
+        - investigate complaints involving death or serious harm due to public healthcare failures (esp. children/vulnerable)
+    - Community/youth/women:
+        - address lack of protection by trade unions
+        - youth mentorship/social support; use of land allocated to youth
+        - address violence/harassment against women; vocational training/higher education for women; effective use of resources for women’s rights/protection
+    - Coordinate oversight responses and ensure accountability in reviewed complaints.
+    - Financially assist citizens abroad to return to their country of origin.
+
+- id: 11.1
+  name: Oversight of the Development of Agricultural and Food
+  duties:
+    - Handle issues related to:
+        - cotton cultivation, storage, processing
+        - contracts, payment discipline, financing, crediting in agriculture
+        - food production and household plots
+        - agricultural clusters
+        - grain crops and farmer households
+    - Supervise maintenance/use of agricultural machinery and leasing.
+    - Regulate use of fuel and lubricants in agriculture.
+    - Ensure proper storage of mineral fertilizers.
+    - Manage plant quarantine and protection issues.
+    - efficient use of water resources and hydraulic structures
+    - production and processing of required grain products
+    - horticulture, viticulture, greenhouse farming
+    - Promote development of vegetable growing, veterinary, livestock, poultry, and beekeeping.
+
+- id: 11.2
+  name: Oversight of the Development of Fisheries in Natural Lakes and Use of Water Resources
+  duties:
+    - Handle issues related to:
+        - legislation on the use of natural lake water resources
+        - violations and misuse of natural lake systems (incl. illegal fishing)
+
+- id: 10.5
+  name: Oversight of the Fuel and Energy Sector
+  duties:
+    - Oversee labor relations within fuel-energy enterprises and regulatory bodies.
+    - Improve and repair electricity and natural-gas supply systems.
+    - Ensure compliance with protection zones for electrical and natural-gas installations and networks.
+    - Handle issues related to:
+        - actions of officials in fuel-energy enterprises and regulatory bodies
+        - illegal use and embezzlement of fuel-energy resources, including recovery/return of improperly collected funds to supply agencies’ accounts
+        - billing for consumed electricity and natural gas
+        - connection/access to electricity and natural-gas networks
+
+- id: 10.7
+  name: Oversight of Ecology, Environmental Protection, and Forestry
+  duties:
+    - Oversee implementation of legislation in ecology, environmental protection, and forestry, including:
+        - actions of the Ministry of Ecology, Environmental Protection, and Climate Change employees
+        - air pollution and responsible organizations
+        - illegal cutting/damage to trees, plants, shrubs
+        - implementation of the 'Green Space' national project
+        - activities of the 'Waste Management Directorate' and Sanitary Cleaning Organization
+        - activities of 'Green University' and the Hydrometeorological Service
+        - environmental violations in the Aral Sea region
+        - activities of the Forestry Agency and the “Ecotourism and Hunting Development Department”
+        - activities of the State Environmental Expertise Center
+        - Safe River management activities
+        - illegal sand and gravel extraction in riverbeds
+        - harm to species listed in Uzbekistan's Red Book
+
+- id: 10.6
+  name: Construction Projects Oversight and Compliance Office
+  duties:
+    - Monitor implementation of social and production infrastructure programs funded by budget and centralized sources.
+    - Ensure timely, transparent tenders and quality execution of construction-contract works.
+    - Oversee timely financing by project initiators and effective use of budget funds.
+    - Control expenses and execution of projects with unclear financing; ensure parallel development of design documentation and construction works.
+    - Prevent conflicts of interest across project selection, implementation, and commissioning.
+    - Ensure proper formation/maintenance of ratings for project-survey and construction-contract organizations per legal criteria.
+    - Enforce against unauthorized/illegal construction:
+        - prevent and identify violations
+        - issue/enforce demolition orders
+        - sanction disregard for regulations
+    - Supervise quality construction of model-project housing and timely completion of construction, reconstruction, and major repairs.
+
+- id: 32
+  name: Preventing Misappropriation of Land Resources
+  duties:
+    - Handle complaints/disputes related to:
+        - misappropriation of land resources not addressed by courts/investigative bodies
+        - failure to register rights to land plots and buildings
+        - unauthorized occupation and illegal use of land plots
+    - Investigate actions of cadastral authority employees.
+    - Ensure compliance with legal requirements in land allocation, including Land Code adherence.
+
+- id: 9
+  name: Oversight of Minors
+  duties:
+    - Handle complaints/disputes related to:
+        - admissions to specialized schools, sports schools, and Presidential schools
+        - actions of officials from the Ministry of Preschool and School Education
+        - actions of officials from:
+            - National Institute of Pedagogical Skills
+            - Uzbekistan 'Yoshlar' Physical Education and Sports Society
+            - Republican Children's School
+            - Agency of Specialized Educational Institutions
+    - Review actions of officials from children's health camps and support funds.
+    - Manage correspondence related to the Uzbekistan Kurash Federation and the International Kurash Association.
+    - Oversee implementation of legislation concerning minors.
+
+- id: 12
+  name: Ensuring Prosecutorial Powers in Criminal Proceedings
+  duties:
+    - Provide information on categories of appeals for 24th-sector employees’ convenience.
+    - File protests against criminal and related court decisions across instances (first, appellate, cassation, supervisory) and on administrative-offense decisions as provided by law.
+    - Restore missed deadlines for filing complaints or protests.
+    - Address dissatisfaction with:
+        - actions of court staff (refer to the Supreme Council of Judges)
+        - court investigations (send to court under Article 388 of the Criminal Procedure Code)
+    - Submit objections to a higher court under Article 393 of the Criminal Procedure Code.
+
+- id: 13
+  name: Ensuring Prosecutorial Powers in Economic Proceedings
+  duties:
+    - Ensure prosecutor's authority in economic court proceedings
+    - Handle appeals and protests related to economic court decisions and rulings at all instances (inter-district/district/city; Karakalpakstan, regional, Tashkent city; appellate, cassation, supervisory) including private rulings and matters involving prosecutor participation; review/forward appeals as appropriate
+
+- id: 14
+  name: Civil Affairs and Court Decisions Department
+  duties:
+    - Handle issues related to civil proceedings, including:
+        - prosecutor participation in civil cases
+        - decisions of the Supreme Court's civil judicial board
+        - complaints against decisions of appellate and first-instance civil courts
+
+- id: 31
+  name: Ensuring Prosecutorial Powers in Administrative Proceedings
+  duties:
+    - Ensure prosecutor participation in administrative court proceedings
+    - Address complaints regarding actions of administrative judges and legality of administrative-court decisions
+    - File protests against decisions at inter-district administrative courts and higher instances (Karakalpakstan, regional, Tashkent city; Supreme Court administrative board)
+
+- id: 20
+  name: Oversight of Armed Forces, State Security Service, and Customs Authorities (does not include prosecutors)
+  duties:
+    - Oversight of DXX criminal proceedings: changes in preventive measures; detainee meetings/access; dismissals; provision of indictment copies; release of property; detention legality in DXX detention centers.
+    - Customs oversight:
+        - actions of customs officers; abuses/violations in the customs sector
+        - pre-investigation checks, inquiries, preliminary investigations, and operational searches
+        - unlawful detention and imprisonment
+    - Military justice oversight: criminal case proceedings in military courts and decisions reviewed by the Supreme Court of Uzbekistan.
+    - Oversight of employees in the Ministry of Defense, Ministry of Emergency Situations, National Guard, and other security forces.
+    - Legal violations at critical and categorized facilities.
+    - Combat smuggling and customs law violations (incl. illegal transport of drugs, weapons, cultural heritage).
+
+- id: 19
+  name: Coordination of Anti-Corruption Measures
+  duties:
+    - Coordinate anti-corruption measures.
+    - Ensure legality of key investigative/coercive decisions:
+        - unjustified refusal to initiate cases; cancellation of unjustified initiated cases
+        - unjustified detention/precautionary measures; changes to precautionary measures
+        - unjustified property restrictions; review of property seizures
+    - Assist in recovering damages identified in criminal cases.
+    - Ensure compliance with legal requirements during document inspections.
+    - Safeguard case-management rights: address unaddressed petitions, grant access to case documents, consider transfers to other regions, and resolve dissatisfaction with investigator actions.
+
+- id: 21
+  name: Combating Organized Crime and Corruption
+  duties:
+    - Investigate criminal cases related to organized crime and corruption.
+    - Manage ongoing-case motions: lift property-management restrictions; modify precautionary measures; terminate parts of cases; amend/supplement charges; and resolve other issues arising during investigations.
+
+- id: 22
+  name: Public Relations and Legal Information Department
+  duties:
+    - Review requests for interviews with prosecution staff by media and bloggers.
+    - Establish cooperation with ministries/agencies regarding collaboration with prosecution and press services.
+    - Evaluate requests related to filming shows, videos, events, movies, and series connected to prosecution matters.
+    - Investigate or provide information on inquiries from media, including social-media issues.
+
+- id: 27
+  name: Analyzing Issues of Ensuring Legality and Law and Order
+  duties:
+    - Analyze issues related to legality and law enforcement.
+    - Handle appeals regarding compliance of legal documents with the Constitution.
+    - Receive and process proposals for improving legislative documents.
+    - Provide interpretations of normative legal documents developed by the Prosecutor's Office.
+    - Address complaints about the activities of prosecutor sectors.
+
+- id: 26
+  name: International Legal Department
+  duties:
+    - Handle inquiries related to the Ministry of Foreign Affairs and its foreign institutions.
+    - Manage matters related to the National Central Bureau of Interpol in Uzbekistan.
+    - Handle issues related to:
+        - Committee on Inter-ethnic Relations and Friendship with Foreign Countries under the Cabinet of Ministers
+        - Migration Agency under the Cabinet of Ministers
+        - Uzbek citizens temporarily/permanently abroad (incl. labor migrants); those prosecuted/serving sentences abroad; deportations for legal violations
+        - foreign citizens/stateless persons prosecuted/serving sentences in Uzbekistan; deportations
+        - foreign citizens/stateless persons temporarily/permanently registered in Uzbekistan (incl. labor activities)
+        - Main Directorate of Migration and Citizenship Registration (MIA) concerning citizens’ travel abroad and entry into Uzbekistan
+    - Conduct pre-investigation checks, inquiries, and preliminary investigations of crimes committed by foreign citizens/stateless persons, except cases under SSS jurisdiction.
+    - Administer cases of administrative offenses by foreign citizens/stateless persons, excluding those reviewed by courts.
+    - Provide legal assistance in criminal matters, extradition, and prosecution; facilitate transfer of convicts and mentally ill persons for continued punishment/treatment.
+    - Process requests related to issuance of apostilles.
+
+- id: 6
+  name: Human Resources of the prosecutor's office
+  duties:
+    - Process applications:
+        - for positions in the prosecutor's office
+        - for the 'Future Prosecutors Club'
+    - Handle issues regarding:
+        - dismissal from positions
+        - disciplinary actions during service
+        - demotion within the prosecutor's office
+    - Provide HR information and records:
+        - incentives for service activities
+        - work and service experience
+        - extracts from employment records
+    - Authorize participation in selection for service; approve changes in service location.
+    - Facilitate reinstatement or re-admission to service in the prosecutor's office.
+    - Manage internship arrangements within the prosecutor's office.
+    - Provide explanations regarding service-admission procedures.
+    - Ensure social protection for prosecutor's office employees.
+
+- id: 28
+  name: Administrative Department
+  duties:
+    - Ensure safekeeping of vehicles seized as evidence and stored at the Prosecutor's Office garage.
+    - Facilitate purchase and warranty service of vehicles and other items.
+    - Recruit janitors or drivers for the department.
+    - Address actions of finance and economic department employees at regional, district, and city levels.
+    - Provide construction and repair services for Prosecutor's Office buildings.
+    - Administer pensions for former prosecutors’ office employees:
+        - assignment (service completion, disability, loss of breadwinner)
+        - recalculation, transitions, and payments
+        - resolve unassigned pensions, overpayments, amounts, and delayed payments
+        - consider service periods in calculations
+        - review/appeal decisions of lower prosecutor pension commissions; manage their pension-payment issues
+    - Provide information on monthly salaries for former employees of the Prosecutor's Office.
+    - Return funds deposited for damages and bail during investigation and inquiry processes.
