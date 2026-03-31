@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 import asyncio
+import csv
 import os
 import sys
-import csv
-import json
+
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Add the parent directory to Python path so we can import from lib
+# Add the parent directory to Python path so we can import from library
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from library.ai import select_department
@@ -18,12 +18,13 @@ from library.ai import select_department
 # Semaphore to limit concurrent tasks
 MAX_CONCURRENT_TASKS = 4
 
+
 async def process_single_test_case(semaphore, row, case_number):
     """Process a single test case with semaphore control"""
     async with semaphore:
-        file_hash = row.get('file_hash', 'unknown')
-        content = row.get('content', '')
-        summary = row.get('summary', '')
+        file_hash = row.get("file_hash", "unknown")
+        content = row.get("content", "")
+        summary = row.get("summary", "")
 
         print(f"\nTest Case {case_number}: {file_hash}")
         print("-" * 60)
@@ -31,84 +32,94 @@ async def process_single_test_case(semaphore, row, case_number):
         try:
             print(f"DEBUG: Processing row for {file_hash}")
 
-            # Get the expected department ID from corrected_department_id column
-            expected_department_id = row.get('corrected_department_id', '').strip()
-            print(f"DEBUG: expected_department_id: {expected_department_id}")
+            # Get the expected official order from corrected_department_id column
+            expected_department_id = row.get("corrected_department_id", "").strip()
+            print(f"DEBUG: expected_order: {expected_department_id}")
 
-            if not expected_department_id or expected_department_id in ['17', '8', '24', '']:
-                print(f"Warning: No valid corrected department ID found for {file_hash}")
+            if not expected_department_id or expected_department_id in [
+                "17",
+                "8",
+                "24",
+                "",
+            ]:
+                print(
+                    f"Warning: No valid corrected official order found for {file_hash}"
+                )
                 return None
 
             # Call the select_department function
             result = await select_department(content)
 
-            if result and result.get('id'):
-                predicted_department_id = str(result.get('id'))
-                confidence = result.get('confidence', 'N/A')
-                reasoning = result.get('reasoning', 'No reasoning provided')
+            if result and result.get("id"):
+                predicted_department_id = str(result.get("id"))
+                reasoning = result.get("reasoning", "No reasoning provided")
 
-                print(f"Predicted department ID: {predicted_department_id}")
-                print(f"Expected department ID: {expected_department_id}")
+                print(f"Predicted official order: {predicted_department_id}")
+                print(f"Expected official order: {expected_department_id}")
 
                 # Check if prediction matches expected result
                 if predicted_department_id == str(expected_department_id):
-                    print(f"✅ PASS - Department ID matches (Expected: {expected_department_id}, Predicted: {predicted_department_id})")
+                    print(
+                        f"✅ PASS - Official order matches (Expected: {expected_department_id}, Predicted: {predicted_department_id})"
+                    )
                     return {
-                        'status': 'pass',
-                        'file_hash': file_hash,
-                        'expected': expected_department_id,
-                        'predicted': predicted_department_id,
-                        'confidence': confidence
+                        "status": "pass",
+                        "file_hash": file_hash,
+                        "expected": expected_department_id,
+                        "predicted": predicted_department_id,
+                        "reasoning": reasoning,
                     }
                 else:
-                    print(f"❌ FAIL - Department ID mismatch (Expected: {expected_department_id}, Predicted: {predicted_department_id})")
-                    print(f"   Confidence: {confidence}")
+                    print(
+                        f"❌ FAIL - Official order mismatch (Expected: {expected_department_id}, Predicted: {predicted_department_id})"
+                    )
                     print(f"   Reasoning: {reasoning}")
                     print(f"   Summary: {summary}")
                     return {
-                        'status': 'fail',
-                        'file_hash': file_hash,
-                        'expected': expected_department_id,
-                        'predicted': predicted_department_id,
-                        'confidence': confidence,
-                        'reasoning': reasoning,
-                        'summary': summary
+                        "status": "fail",
+                        "file_hash": file_hash,
+                        "expected": expected_department_id,
+                        "predicted": predicted_department_id,
+                        "reasoning": reasoning,
+                        "summary": summary,
                     }
             else:
-                print("❌ FAIL - No department selected by AI")
+                print("❌ FAIL - No official selected by AI")
                 print(f"   Summary: {summary}")
                 return {
-                    'status': 'fail',
-                    'file_hash': file_hash,
-                    'expected': expected_department_id,
-                    'predicted': 'None',
-                    'confidence': 'N/A',
-                    'summary': summary
+                    "status": "fail",
+                    "file_hash": file_hash,
+                    "expected": expected_department_id,
+                    "predicted": "None",
+                    "reasoning": "No official selected",
+                    "summary": summary,
                 }
 
         except KeyError as e:
             print(f"DEBUG: Missing column error for {file_hash}: {str(e)}")
             return {
-                'status': 'fail',
-                'file_hash': file_hash,
-                'expected': 'Missing Column',
-                'predicted': 'Missing Column',
-                'confidence': 'N/A',
+                "status": "fail",
+                "file_hash": file_hash,
+                "expected": "Missing Column",
+                "predicted": "Missing Column",
+                "reasoning": "Missing required column",
             }
 
         except Exception as e:
             print(f"DEBUG: Exception caught for {file_hash}: {str(e)}")
             print(f"DEBUG: Exception type: {type(e).__name__}")
             import traceback
+
             print(f"DEBUG: Full traceback:")
             traceback.print_exc()
             return {
-                'status': 'fail',
-                'file_hash': file_hash,
-                'expected': 'Error',
-                'predicted': 'Error',
-                'confidence': 'N/A',
+                "status": "fail",
+                "file_hash": file_hash,
+                "expected": "Error",
+                "predicted": "Error",
+                "reasoning": str(e),
             }
+
 
 async def test_select_department_from_csv(csv_file_path):
     """Test the select_department function with test cases from CSV file using parallel processing"""
@@ -129,14 +140,14 @@ async def test_select_department_from_csv(csv_file_path):
     valid_rows = []
 
     try:
-        with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
+        with open(csv_file_path, "r", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             print(f"DEBUG: CSV headers: {reader.fieldnames}")
 
             for item, row in enumerate(reader, start=1):
                 # Skip rows where corrected_department_id is null or empty
-                corrected_dept_id = row.get('corrected_department_id', '').strip()
-                if not corrected_dept_id or corrected_dept_id in ['17', '8', '24']:
+                corrected_dept_id = row.get("corrected_department_id", "").strip()
+                if not corrected_dept_id or corrected_dept_id in ["17", "8", "24"]:
                     continue
 
                 valid_rows.append((row, len(valid_rows) + 1))
@@ -160,29 +171,36 @@ async def test_select_department_from_csv(csv_file_path):
         for result in results:
             if isinstance(result, Exception):
                 print(f"Task failed with exception: {result}")
-                failed_cases.append({
-                    'file_hash': 'Exception',
-                    'expected': 'Error',
-                    'predicted': 'Error',
-                    'confidence': 'N/A',
-                })
+                failed_cases.append(
+                    {
+                        "file_hash": "Exception",
+                        "expected": "Error",
+                        "predicted": "Error",
+                        "reasoning": str(result),
+                    }
+                )
                 total_cases += 1
             elif result is not None:
                 total_cases += 1
-                if result['status'] == 'pass':
-                    passed_cases.append({
-                        'file_hash': result['file_hash'],
-                        'expected': result['expected'],
-                        'predicted': result['predicted'],
-                        'confidence': result['confidence']
-                    })
+                if result["status"] == "pass":
+                    passed_cases.append(
+                        {
+                            "file_hash": result["file_hash"],
+                            "expected": result["expected"],
+                            "predicted": result["predicted"],
+                            "reasoning": result.get("reasoning"),
+                        }
+                    )
                 else:
-                    failed_cases.append({
-                        'file_hash': result['file_hash'],
-                        'expected': result['expected'],
-                        'predicted': result['predicted'],
-                        'confidence': result['confidence'],
-                    })
+                    failed_cases.append(
+                        {
+                            "file_hash": result["file_hash"],
+                            "expected": result["expected"],
+                            "predicted": result["predicted"],
+                            "reasoning": result.get("reasoning"),
+                            "summary": result.get("summary"),
+                        }
+                    )
 
     except Exception as e:
         print(f"Error reading CSV file: {str(e)}")
@@ -190,18 +208,24 @@ async def test_select_department_from_csv(csv_file_path):
 
     # Write results to file
     results_file = "test-results.txt"
-    with open(results_file, 'w', encoding='utf-8') as f:
+    with open(results_file, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
         f.write("TEST SUMMARY\n")
         f.write("=" * 80 + "\n")
         f.write(f"Total test cases: {total_cases}\n")
 
         if total_cases > 0:
-            f.write(f"Passed: {len(passed_cases)} ({len(passed_cases)/total_cases*100:.1f}%)\n")
-            f.write(f"Failed: {len(failed_cases)} ({len(failed_cases)/total_cases*100:.1f}%)\n")
+            f.write(
+                f"Passed: {len(passed_cases)} ({len(passed_cases) / total_cases * 100:.1f}%)\n"
+            )
+            f.write(
+                f"Failed: {len(failed_cases)} ({len(failed_cases) / total_cases * 100:.1f}%)\n"
+            )
         else:
             f.write("No valid test cases found in the CSV file.\n")
-            f.write("Make sure the CSV has rows with non-empty 'corrected_department_id' values.\n")
+            f.write(
+                "Make sure the CSV has rows with non-empty 'corrected_department_id' values.\n"
+            )
             print(f"Results written to {results_file}")
             return
 
@@ -211,9 +235,10 @@ async def test_select_department_from_csv(csv_file_path):
             f.write("-" * 40 + "\n")
             for case in passed_cases:
                 f.write(f"Hash: {case['file_hash']}\n")
-                f.write(f"  Expected: {case['expected']}, Predicted: {case['predicted']}\n")
-                f.write(f"  Confidence: {case['confidence']}\n")
-                if case.get('reasoning'):
+                f.write(
+                    f"  Expected: {case['expected']}, Predicted: {case['predicted']}\n"
+                )
+                if case.get("reasoning"):
                     f.write(f"  Reasoning: {case['reasoning']}\n")
                 f.write("\n")
 
@@ -223,26 +248,32 @@ async def test_select_department_from_csv(csv_file_path):
             f.write("-" * 40 + "\n")
             for case in failed_cases:
                 f.write(f"Hash: {case['file_hash']}\n")
-                f.write(f"  Expected: {case['expected']}, Predicted: {case['predicted']}\n")
-                f.write(f"  Confidence: {case['confidence']}\n")
-                if case.get('reasoning'):
+                f.write(
+                    f"  Expected: {case['expected']}, Predicted: {case['predicted']}\n"
+                )
+                if case.get("reasoning"):
                     f.write(f"  Reasoning: {case['reasoning']}\n")
-                if case.get('summary'):
+                if case.get("summary"):
                     f.write(f"  Summary: {case['summary']}\n")
                 f.write("\n")
 
         # Write file hashes for easy reference
         f.write("\nPASSED FILE HASHES:\n")
-        f.write(", ".join([case['file_hash'] for case in passed_cases]) + "\n")
+        f.write(", ".join([case["file_hash"] for case in passed_cases]) + "\n")
 
         f.write("\nFAILED FILE HASHES:\n")
-        f.write(", ".join([case['file_hash'] for case in failed_cases]) + "\n")
+        f.write(", ".join([case["file_hash"] for case in failed_cases]) + "\n")
 
     print(f"Results written to {results_file}")
     print(f"Total test cases: {total_cases}")
     if total_cases > 0:
-        print(f"Passed: {len(passed_cases)} ({len(passed_cases)/total_cases*100:.1f}%)")
-        print(f"Failed: {len(failed_cases)} ({len(failed_cases)/total_cases*100:.1f}%)")
+        print(
+            f"Passed: {len(passed_cases)} ({len(passed_cases) / total_cases * 100:.1f}%)"
+        )
+        print(
+            f"Failed: {len(failed_cases)} ({len(failed_cases) / total_cases * 100:.1f}%)"
+        )
+
 
 def main():
     """Main function to run the test"""
@@ -260,7 +291,9 @@ def main():
     missing_vars = [var for var in required_env_vars if not os.getenv(var)]
 
     if missing_vars:
-        print(f"Error: Missing required environment variables: {', '.join(missing_vars)}")
+        print(
+            f"Error: Missing required environment variables: {', '.join(missing_vars)}"
+        )
         print("Please set these in your .env file or environment")
         sys.exit(1)
 
@@ -272,6 +305,7 @@ def main():
     except Exception as e:
         print(f"Test failed with error: {str(e)}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

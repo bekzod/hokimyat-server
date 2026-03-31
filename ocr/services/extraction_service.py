@@ -21,9 +21,7 @@ from core.config import get_settings
 # because they contain complex business logic (fuzzy matching, prompts, etc.)
 from library.ai import (
     check_for_repeated_request,
-    extract_articles,
     extract_author_information,
-    extract_case_info,
     get_entity_type,
     select_document_type,
 
@@ -193,9 +191,6 @@ class ExtractionService:
 
         if "entity_type" in tasks_to_run:
             tasks.append(("entity_type", get_entity_type, first_page_content))
-        if "case_info" in tasks_to_run:
-            tasks.append(("case_info", extract_case_info, content))
-            tasks.append(("articles", extract_articles, content))
         if "repeated_info" in tasks_to_run:
             tasks.append(("repeated", check_for_repeated_request, content))
 
@@ -237,10 +232,6 @@ class ExtractionService:
             ),
             "entity": results.get("entity_type"),
             "document_type": results.get("document_type"),
-            "case_info": {
-                **(results.get("case_info") or {}),
-                **(results.get("articles") or {}),
-            },
             "errors": errors or None,
         }
 

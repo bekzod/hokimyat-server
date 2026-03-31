@@ -1,5 +1,6 @@
 import logging
 import re
+from pathlib import Path
 from typing import Optional
 
 import yaml
@@ -25,6 +26,9 @@ logger = logging.getLogger(__name__)
 
 MODEL = "gpt-5.4-mini"
 REASONING = {"effort": "medium"}
+OFFICIALS_DATA_PATH = (
+    Path(__file__).resolve().parent.parent / "data" / "toshkent-tumani-officials.yaml"
+)
 
 
 class AuthorInfo(BaseModel):
@@ -44,50 +48,14 @@ class AuthorInfo(BaseModel):
     date_of_issue: Optional[str] = None
 
 
-class DocumentTypeResponse(BaseModel):
-    type: str = ""
-
-
-class PersonInfo(BaseModel):
-    first_name: str = ""
-    middle_name: str = ""
-    last_name: str = ""
-
-
-class CaseInfoResponse(BaseModel):
-    case_number: Optional[str] = None
-    suspect: Optional[PersonInfo] = None
-    victim: Optional[PersonInfo] = None
-    claimant: Optional[PersonInfo] = None
-
-
-class Article(BaseModel):
-    article: int
-    part: Optional[int] = None
-    clause: Optional[str] = None
-
-
-class ArticlesResponse(BaseModel):
-    articles: list[Article] = []
-
-
 class IssuesResponse(BaseModel):
     issues: list[str] = []
     keywords: list[str] = []
 
 
 class DepartmentSelection(BaseModel):
-    department_id: Optional[str] = None
+    order: Optional[int] = None
     reasoning: str = ""
-    confidence: int = 0
-
-
-class SummaryResponse(BaseModel):
-    summary: str
-
-
-class EntityTypeResponse(BaseModel):
-    entity_type: str = ""
 
 
 class RepeatedRequestResponse(BaseModel):
@@ -95,10 +63,23 @@ class RepeatedRequestResponse(BaseModel):
     dates: list[str] = []
 
 
-def load_departments_data(file_path: str):
-    """Load departments from YAML file."""
+def load_yaml_data(file_path: str | Path):
+    """Load YAML data from disk."""
     with open(file_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f) or []
+
+
+def build_officials_prompt_data(officials_data):
+    """Trim the officials list to fields relevant for routing."""
+    return [
+        {
+            "order": official.get("order"),
+            "position": official.get("position"),
+            "responsibilities": official.get("responsibilities") or [],
+        }
+        for official in officials_data
+        if isinstance(official, dict)
+    ]
 
 
 # @mlflow.trace
@@ -166,99 +147,23 @@ async def extract_author_information(text):
 
 # @mlflow.trace
 async def select_document_type(text):
-    response = await openai.responses.parse(
+    response = await openai.responses.create(
         model=MODEL,
         input=f"""
           Classify the given document (citizen complaint or government letter) by selecting the most appropriate document type.
+          Return only the document type as plain text.
           # Document:
           {text}
           """,
-        text_format=DocumentTypeResponse,
         reasoning=REASONING,
     )
 
-    parsed = response.output_parsed
-    if not parsed:
-        return ""
-    return parsed.type
+    return (response.output_text or "").strip()
 
 
 # @mlflow.trace
-async def extract_case_info(text):
-    response = await openai.responses.parse(
-        model=MODEL,
-        input=f"""
-          Extract case information from the given complaint or government letter. Account for the possibility that the **victim** and **claimant** could be the same individual, or they could be different people.
-
-          1. **Identify the Case Number**
-             - Locate and extract the case number from the case description.
-             - The case number typically follows a standardized format that may include letters, numbers, or symbols.
-
-          2. **Extract Suspect (Defendant) Details**
-             - Search the case description for the name of the suspect or defendant.
-             - Capture the first name, middle name or initial (if present), and last name.
-             - If the middle name is not provided, use an empty string.
-
-          3. **Extract Victim Details**
-             - Locate the name of the victim in the case description.
-             - Capture the victim's first name, middle name or initial (if present), and last name.
-             - If the middle name is not provided, use an empty string.
-             - If no victim name is given, use empty strings for these fields.
-
-          4. **Extract Claimant Details**
-             - Identify the name of the claimant, if provided.
-             - Capture the claimant's first name, middle name or initial (if present), and last name.
-             - If no claimant name is provided, use empty strings for these fields.
-             - **Important**: If the case description indicates that the victim and the claimant are the same person, repeat the same name details for both the victim and claimant. Otherwise, treat them as separate individuals.
-
-           ### Notes
-           - If no victim name or no claimant name is found, fill the respective fields with empty strings.
-           - Consider variations in formatting for the case number and names (capitalization, hyphens, initials, etc.).
-           - If multiple suspects, victims, or claimants appear, return the main (primary) individuals relevant to the case.
-
-          # Case Description:
-          {text}
-        """,
-        text_format=CaseInfoResponse,
-        reasoning=REASONING,
-    )
-
-    parsed = response.output_parsed
-    return parsed.model_dump() if parsed else {}
-
 
 # @mlflow.trace
-async def extract_articles(text):
-    response = await openai.responses.parse(
-        model=MODEL,
-        input=f"""
-          Identify and extract legal article references from the given complaint or government letter. If multiple law articles, parts, or clauses are mentioned, extract each one separately.
-
-          # Steps
-
-          1. **Comprehension**: Read through the document to understand the context and identify legal references.
-          2. **Identification**: Locate any text that refers to specific laws, articles, parts, or clauses.
-          3. **Extraction**: Extract and differentiate between articles, parts, and clauses mentioned. Multiple mentions should be processed individually.
-
-          # Examples
-
-          - "168-моддаси 4-кисми 'а' банди" → article=168, part=4, clause="a"
-          - "121-моддаси 3-кисми 'б' банди ва 124-моддаси 1-кисми" → two articles: (121, 3, "b") and (124, 1, null)
-
-          # Notes
-          - Ensure each legal reference is accurately extracted, including articles, parts, and clauses.
-          - If a clause is not present, set it to null.
-          - Consider regional legal terminology variations when interpreting the case descriptions.
-
-          # Document:
-          {text}
-        """,
-        text_format=ArticlesResponse,
-        reasoning=REASONING,
-    )
-
-    parsed = response.output_parsed
-    return parsed.model_dump() if parsed else {}
 
 
 # @mlflow.trace
@@ -279,27 +184,29 @@ async def extract_issues(text):
     return parsed.model_dump() if parsed else {"issues": [], "keywords": []}
 
 
-async def _select_department(departments_yaml, summary):
+async def _select_department(officials_yaml, summary):
     response = await openai.responses.parse(
         model=MODEL,
         instructions=f"""
-            Given a citizen complaint or government letter, select the most appropriate prosecutor's department that is responsible for handling it according to their duties.
+            Given a citizen complaint or government letter, select the district administration official who should handle the issue or who is the most likely intended recipient of the letter.
 
-            Perform these reasoning steps before providing your conclusion:
-            1. *Analyze the Issue*: Break down the document's content. Extract the main facts and issues. Identify main plaintiff and defendant if applicable.
-            2. *Match with Department*: Evaluate the duties of each department provided. Compare these duties to the document's main issues, and identify which department aligns most closely.
-            3. *Conclusion*: Based on your reasoning above, state the department primarily responsible for handling this matter.
+            Your goal is to find the single best-matching official based on the letter's content.
 
-            Guidelines:
-            - If you cannot find a suitable department return null for the department id.
-            - In cases where responsibility overlaps, select the department whose main duties most closely fit the document.
-            - Provide a confidence score (0-10) indicating how well the selected department matches.
+            Selection rules:
+            - Focus on the core issue, requested action, and any explicitly targeted position in the letter.
+            - Match the issue to the official whose responsibilities most directly cover the matter.
+            - If the letter is clearly addressed to a position in the list, prefer that official when it is a reasonable match.
+            - If several officials could be involved, choose the one who should primarily resolve the issue or reply to the letter.
+            - Use only the provided officials list.
+            - Return only:
+              - order: the selected official's order number, or null if no reasonable match exists
+              - reasoning: a short explanation of why this position is the best fit
 
-            Departments:
-            {departments_yaml}
+            Officials:
+            {officials_yaml}
 
-            Document:
-            {summary}
+            Letter:
+            {summary or ""}
         """,
         text_format=DepartmentSelection,
         reasoning=REASONING,
@@ -312,15 +219,19 @@ async def _select_department(departments_yaml, summary):
 
 # @mlflow.trace
 async def select_department(summary=None):
-    departments_data = load_departments_data("data/departments.yaml")
-    departments_yaml = yaml.dump(
-        departments_data, default_flow_style=False, allow_unicode=True
+    officials_data = load_yaml_data(OFFICIALS_DATA_PATH)
+    officials_yaml = yaml.dump(
+        build_officials_prompt_data(officials_data),
+        default_flow_style=False,
+        allow_unicode=True,
+        sort_keys=False,
     )
 
-    result = await _select_department(departments_yaml, summary)
+    result = await _select_department(officials_yaml, summary)
 
     if result:
-        result["id"] = result.get("department_id")
+        order = result.get("order")
+        result["id"] = str(order) if order is not None else None
         return result
 
     return {}
@@ -340,29 +251,29 @@ async def summarize(text, language="Uzbek"):
     if sentence_count <= 3:
         return text
 
-    response = await openai.responses.parse(
+    response = await openai.responses.create(
         model=MODEL,
         input=f"""
           Analyze the given complaint or government letter and summarize it from a third-person perspective in {language} by highlighting issues and problems.
-          Summary should be short, 3 sentences max. Do not mention its summary.
+          Return only the summary as plain text.
+          Summary should be short, 3 sentences max. Do not mention that it is a summary.
 
           # Document:
           {text}
           """,
-        text_format=SummaryResponse,
         reasoning=REASONING,
     )
 
-    parsed = response.output_parsed
-    return parsed.summary if parsed else ""
+    return (response.output_text or "").strip()
 
 
 # @mlflow.trace
 async def get_entity_type(text):
-    response = await openai.responses.parse(
+    response = await openai.responses.create(
         model=MODEL,
         input=f"""
           Classify the given complaint or government letter as being written by either an "individual" or a "business".
+          Return only one value as plain text: "individual" or "business".
           Consider the language, content, and structure to determine the entity type.
 
           # Steps
@@ -374,12 +285,11 @@ async def get_entity_type(text):
           # Document
           {text}
         """,
-        text_format=EntityTypeResponse,
         reasoning=REASONING,
     )
 
-    parsed = response.output_parsed
-    return parsed.model_dump() if parsed else {}
+    entity_type = (response.output_text or "").strip()
+    return {"entity_type": entity_type} if entity_type else {}
 
 
 # @mlflow.trace
