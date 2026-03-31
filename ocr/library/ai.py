@@ -25,7 +25,8 @@ openai = AsyncOpenAI(
 logger = logging.getLogger(__name__)
 
 MODEL = "gpt-5.4-mini"
-REASONING = {"effort": "medium"}
+REASONING_LOW = {"effort": "low"}
+REASONING_MEDIUM = {"effort": "medium"}
 OFFICIALS_DATA_PATH = (
     Path(__file__).resolve().parent.parent / "data" / "toshkent-tumani-officials.yaml"
 )
@@ -108,7 +109,7 @@ async def extract_author_information(text):
           {text}
         """,
         text_format=AuthorInfo,
-        reasoning=REASONING,
+        reasoning=REASONING_MEDIUM,
     )
 
     parsed = response.output_parsed
@@ -155,7 +156,7 @@ async def select_document_type(text):
           # Document:
           {text}
           """,
-        reasoning=REASONING,
+        reasoning=REASONING_LOW,
     )
 
     return (response.output_text or "").strip()
@@ -177,7 +178,7 @@ async def extract_issues(text):
           {text}
           """,
         text_format=IssuesResponse,
-        reasoning=REASONING,
+        reasoning=REASONING_LOW,
     )
 
     parsed = response.output_parsed
@@ -209,7 +210,7 @@ async def _select_department(officials_yaml, summary):
             {summary or ""}
         """,
         text_format=DepartmentSelection,
-        reasoning=REASONING,
+        reasoning=REASONING_MEDIUM,
     )
 
     parsed = response.output_parsed
@@ -232,6 +233,16 @@ async def select_department(summary=None):
     if result:
         order = result.get("order")
         result["id"] = str(order) if order is not None else None
+
+        # Enrich with full official info
+        if order is not None:
+            for official in officials_data:
+                if isinstance(official, dict) and official.get("order") == order:
+                    result["full_name"] = official.get("full_name")
+                    result["position"] = official.get("position")
+                    result["responsibilities"] = official.get("responsibilities") or []
+                    break
+
         return result
 
     return {}
@@ -261,7 +272,7 @@ async def summarize(text, language="Uzbek"):
           # Document:
           {text}
           """,
-        reasoning=REASONING,
+        reasoning=REASONING_LOW,
     )
 
     return (response.output_text or "").strip()
@@ -285,7 +296,7 @@ async def get_entity_type(text):
           # Document
           {text}
         """,
-        reasoning=REASONING,
+        reasoning=REASONING_LOW,
     )
 
     entity_type = (response.output_text or "").strip()
@@ -303,7 +314,7 @@ async def check_for_repeated_request(text):
           {text}
           """,
         text_format=RepeatedRequestResponse,
-        reasoning=REASONING,
+        reasoning=REASONING_LOW,
     )
 
     parsed = response.output_parsed

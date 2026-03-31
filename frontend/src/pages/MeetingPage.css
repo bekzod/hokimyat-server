@@ -1,0 +1,522 @@
+/* ── Meeting page layout ── */
+.meeting {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.meeting-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  gap: 24px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── Mode toggle with icons ── */
+.meeting-main .mode-toggle {
+  display: flex;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  width: fit-content;
+}
+
+.meeting-main .mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.meeting-main .mode-btn.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.meeting-main .mode-btn:hover:not(.active):not(:disabled) {
+  background: var(--icon-bg);
+}
+
+.meeting-main .mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mode-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Audio drop zone ── */
+.audio-drop-zone {
+  width: 100%;
+  min-height: 240px;
+  border: 2px dashed var(--card-border);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+  padding: 40px 32px;
+  box-sizing: border-box;
+  animation: fadeUp 0.5s ease-out;
+}
+
+.audio-drop-zone:hover,
+.audio-drop-zone.drag-over {
+  border-color: var(--blue);
+  background: var(--icon-bg);
+}
+
+.audio-drop-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--icon-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.audio-drop-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.drop-formats {
+  font-family: var(--body);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--icon-bg);
+}
+
+/* ── Mic section ── */
+.mic-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 24px;
+  animation: fadeUp 0.5s ease-out;
+}
+
+.mic-start-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 48px;
+  border: 2px solid var(--card-border);
+  border-radius: 24px;
+  background: var(--card-bg);
+  color: var(--text-heading);
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+}
+
+.mic-start-btn:hover {
+  border-color: var(--blue);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(27, 58, 92, 0.12);
+}
+
+.mic-btn-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.mic-btn-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.mic-hint {
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: center;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* ── Recording state ── */
+.recording-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.recording-visualizer {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recording-pulse {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(192, 57, 43, 0.12);
+  transition: transform 0.15s ease-out;
+}
+
+.recording-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #c0392b;
+  animation: recBlink 1.2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes recBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.recording-time {
+  font-family: var(--mono);
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.recording-label {
+  font-family: var(--body);
+  font-size: 14px;
+  color: #c0392b;
+  font-weight: 500;
+  margin: 0;
+}
+
+.level-bar-container {
+  width: 200px;
+  height: 4px;
+  background: var(--card-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.level-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), #27ae60);
+  border-radius: 2px;
+  transition: width 0.1s ease-out;
+}
+
+.stop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 12px;
+  background: #c0392b;
+  color: #fff;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 8px;
+}
+
+.stop-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stop-btn:hover {
+  background: #a93226;
+  transform: translateY(-1px);
+}
+
+.stop-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Upload state ── */
+.upload-state {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.upload-file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-heading);
+}
+
+.upload-file-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--gold);
+}
+
+.upload-state .job-progress {
+  width: 100%;
+  max-width: 400px;
+}
+
+.upload-hint {
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Transcript result ── */
+.transcript-result {
+  width: 100%;
+  animation: fadeUp 0.5s ease-out;
+}
+
+.transcript-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.transcript-header h2 {
+  font-family: var(--heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-heading);
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.copy-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.copy-btn:hover {
+  border-color: var(--blue);
+  background: var(--icon-bg);
+}
+
+.transcript-source {
+  display: inline-block;
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--icon-bg);
+  color: var(--blue);
+  margin-bottom: 12px;
+}
+
+.transcript-content {
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-heading);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 0 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* ── Stream info ── */
+.stream-info {
+  font-family: var(--body);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Saved audio card ── */
+.saved-audio-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--card-bg);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.saved-audio-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--icon-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--blue);
+}
+
+.saved-audio-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.saved-audio-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-filename {
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-meta {
+  font-family: var(--body);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saved-key {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(39, 174, 96, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #27ae60;
+}
+
+.saved-check svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Reuse base animations/styles ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .meeting-main {
+    padding: 24px 16px;
+  }
+
+  .audio-drop-zone {
+    min-height: 180px;
+    padding: 28px 20px;
+  }
+
+  .mic-start-btn {
+    padding: 24px 36px;
+  }
+
+  .mic-btn-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .recording-time {
+    font-size: 32px;
+  }
+
+  .transcript-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

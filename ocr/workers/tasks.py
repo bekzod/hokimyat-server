@@ -132,17 +132,23 @@ async def _process_document_task_async(
                 content = " ".join(words[:MAX_WORDS_LIMIT])
 
             # Parse tasks to run
+            skip_ai = False
             if tasks_to_run:
                 tasks_to_run = [
                     task.strip() for task in tasks_to_run.split(",") if task.strip()
                 ]
+                if tasks_to_run == ["ocr_only"]:
+                    skip_ai = True
 
-            # Run AI extraction tasks via the service
-            meta = await extraction_service.run_ai_tasks(
-                content=content,
-                first_page_content=first_page_content,
-                tasks_to_run=tasks_to_run,
-            )
+            # Run AI extraction tasks via the service (skip for ocr_only mode)
+            if skip_ai:
+                meta = {}
+            else:
+                meta = await extraction_service.run_ai_tasks(
+                    content=content,
+                    first_page_content=first_page_content,
+                    tasks_to_run=tasks_to_run,
+                )
 
             # Add processing times to metadata
             total_process_time = time.time() - task_start_time

@@ -4,7 +4,7 @@ import './HomePage.css'
 const services = [
   {
     title: 'Rasmdan matn AI',
-    description: "Hujjatlarni sun'iy intellekt yordamida qayta ishlash",
+    description: "Rasmli hujjatlardan matn ajratib olish",
     path: '/ocr',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -12,6 +12,29 @@ const services = [
         <path d="M14 2v6h6" />
         <path d="M9 15h6" />
         <path d="M9 11h6" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Hatlar AI',
+    description: "Hatlarni sun'iy intellekt yordamida tahlil qilish",
+    path: '/letters',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z" />
+        <polyline points="22,6 12,13 2,6" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Majlis stenografiyasi',
+    description: "Audio yozuvlarni matnga aylantirish",
+    path: '/meeting',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <line x1="12" y1="19" x2="12" y2="22" />
       </svg>
     ),
   },

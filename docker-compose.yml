@@ -192,10 +192,42 @@ services:
         if ! mc ls minio/${MINIO_BUCKET_NAME}; then
           mc mb minio/${MINIO_BUCKET_NAME}
         else
-          echo 'bucket already exists'
-        fi
+          echo 'bucket ${MINIO_BUCKET_NAME} already exists'
+        fi;
+        if ! mc ls minio/meeting-audio; then
+          mc mb minio/meeting-audio
+        else
+          echo 'bucket meeting-audio already exists'
+        fi;
         exit 0;
       "
+    networks:
+      - default_network
+
+  audio_server:
+    image: ocr-server/audio:latest
+    build:
+      context: ./audio
+      dockerfile: Dockerfile
+    container_name: audio_server
+    restart: unless-stopped
+    ports:
+      - "8100:8100"
+    depends_on:
+      - minio
+      - init-minio
+    env_file:
+      - .env
+    volumes:
+      - ./audio:/app
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8100"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8100/api/meeting/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - default_network
 
@@ -212,6 +244,7 @@ services:
       OCR_SERVER_PORT: "${OCR_SERVER_PORT:-8000}"
     depends_on:
       - ocr_server
+      - audio_server
     networks:
       - default_network
 
