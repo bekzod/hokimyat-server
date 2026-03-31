@@ -103,6 +103,7 @@ export default function LettersPage() {
   const [expandedJobIds, setExpandedJobIds] = useState<string[]>([]);
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<string[]>([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [previewJobId, setPreviewJobId] = useState<string | null>(null);
   const [historyDetails, setHistoryDetails] = useState<
     Record<string, HistoryDetail>
   >({});
@@ -368,7 +369,10 @@ export default function LettersPage() {
           Bosh sahifa
         </Link>
         <h1 className="ocr-nav-title">Hatlar AI</h1>
-        <div style={{ width: 120 }} />
+        <div className="nav-links">
+          <Link to="/ocr" className="nav-link">OCR</Link>
+          <Link to="/meeting" className="nav-link">Majlis</Link>
+        </div>
       </nav>
 
       <main className="ocr-main-multi">
@@ -433,9 +437,41 @@ export default function LettersPage() {
                         </div>
                         <div className="job-actions">
                           <StatusBadge status={job.status} />
-                          <span className="history-chevron">
-                            {isExpanded ? "Yopish" : "Ko'rish"}
-                          </span>
+                          {job.fileId && job.status === "completed" && (
+                            <>
+                              <button
+                                className="header-icon-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewJobId(previewJobId === job.id ? null : job.id);
+                                }}
+                                title="Ko'rish"
+                                type="button"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                  <circle cx="12" cy="12" r="3" />
+                                </svg>
+                              </button>
+                              <a
+                                className="header-icon-btn"
+                                href={`/api/file/${job.fileId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Yuklab olish"
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                              </a>
+                            </>
+                          )}
+                          <svg className={`history-chevron ${isExpanded ? "expanded" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
                           <button
                             className="job-remove"
                             onClick={(e) => {
@@ -448,6 +484,27 @@ export default function LettersPage() {
                           </button>
                         </div>
                       </button>
+
+                      {previewJobId === job.id && job.fileId && (
+                        <div
+                          className="preview-modal-overlay"
+                          onClick={() => setPreviewJobId(null)}
+                        >
+                          <div
+                            className="preview-modal"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              className="preview-modal-close"
+                              onClick={() => setPreviewJobId(null)}
+                              type="button"
+                            >
+                              &times;
+                            </button>
+                            <FilePreview fileId={job.fileId} />
+                          </div>
+                        </div>
+                      )}
 
                       {isExpanded && (
                         <>
@@ -485,7 +542,6 @@ export default function LettersPage() {
                               <AnalysisDisplay
                                 result={job.result}
                                 content={job.content}
-                                fileId={job.fileId}
                               />
                             </div>
                           )}
@@ -542,11 +598,9 @@ export default function LettersPage() {
                             </span>
                           )}
                           <HistoryStatusBadge status={doc.status} />
-                          <span className="history-chevron">
-                            {expandedHistoryIds.includes(doc.file_id)
-                              ? "Yopish"
-                              : "Ko'rish"}
-                          </span>
+                          <svg className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? "expanded" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                            <path d="m6 9 6 6 6-6" />
+                          </svg>
                           <button
                             className="history-delete-btn"
                             onClick={(e) => {
@@ -748,16 +802,35 @@ function AnalysisDisplay({
                 className="copy-btn"
                 onClick={() => setShowPreview(!showPreview)}
                 type="button"
+                title={showPreview ? "Yopish" : "Ko'rish"}
               >
-                {showPreview ? "Yopish" : "Ko'rish"}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  {showPreview ? (
+                    <>
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </>
+                  )}
+                </svg>
               </button>
               <a
                 href={`/api/file/${fileId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="copy-btn"
+                title="Yuklab olish"
               >
-                Yuklab olish
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
               </a>
             </div>
           </div>
@@ -1008,8 +1081,17 @@ function CopyButton({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <button className="copy-btn" onClick={handleCopy} type="button">
-      {copied ? "Nusxalandi" : "Nusxalash"}
+    <button className="copy-btn" onClick={handleCopy} type="button" title={copied ? "Nusxalandi" : "Nusxalash"}>
+      {copied ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
     </button>
   );
 }

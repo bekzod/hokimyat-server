@@ -243,6 +243,26 @@
     gap: 12px;
 }
 
+.header-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--icon-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.header-icon-btn:hover {
+    color: var(--blue);
+    background: rgba(31, 111, 235, 0.1);
+    border-color: rgba(31, 111, 235, 0.24);
+}
+
 .job-thumb {
     width: 52px;
     height: 52px;
@@ -268,11 +288,12 @@
     background: var(--icon-bg);
     color: var(--text-heading);
     border-radius: 999px;
-    padding: 8px 14px;
-    font-family: var(--body);
-    font-size: 13px;
-    font-weight: 600;
+    padding: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    margin-bottom: 8px;
     transition:
         background 0.2s ease,
         border-color 0.2s ease,
@@ -330,6 +351,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 
 .history-meta {
@@ -350,14 +372,17 @@
     color: inherit;
     text-align: left;
     cursor: pointer;
+    font: inherit;
 }
 
 .history-chevron {
-    font-family: var(--body);
-    font-size: 12px;
-    font-weight: 700;
     color: var(--blue);
-    white-space: nowrap;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.history-chevron.expanded {
+    transform: rotate(180deg);
 }
 
 .history-detail {

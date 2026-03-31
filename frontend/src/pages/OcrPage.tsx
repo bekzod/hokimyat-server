@@ -51,6 +51,8 @@ export default function OcrPage() {
   const [history, setHistory] = useState<HistoryDoc[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState<string[]>([])
+  const [historyDetails, setHistoryDetails] = useState<Record<string, { loading?: boolean; error?: string; content?: string }>>({})
   const pollingRefs = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map())
 
   const fetchHistory = useCallback(async () => {
@@ -164,6 +166,33 @@ export default function OcrPage() {
     })
   }, [])
 
+  const loadHistoryDetail = useCallback(async (fileId: string) => {
+    setHistoryDetails(prev => ({ ...prev, [fileId]: { ...prev[fileId], loading: true, error: '' } }))
+    try {
+      const res = await fetch(`/api/status/${fileId}`)
+      if (!res.ok) throw new Error(`Server xatosi: ${res.status}`)
+      const data = await res.json()
+      setHistoryDetails(prev => ({ ...prev, [fileId]: { loading: false, error: '', content: data.content || '' } }))
+    } catch (error) {
+      setHistoryDetails(prev => ({
+        ...prev,
+        [fileId]: { ...prev[fileId], loading: false, error: error instanceof Error ? error.message : "Ma'lumotni olib bo'lmadi" },
+      }))
+    }
+  }, [])
+
+  const toggleHistoryItem = useCallback((fileId: string) => {
+    setExpandedHistoryIds(prev => {
+      const isOpen = prev.includes(fileId)
+      if (isOpen) return prev.filter(id => id !== fileId)
+      return [...prev, fileId]
+    })
+    const detail = historyDetails[fileId]
+    if (!detail || (!detail.loading && !detail.content)) {
+      loadHistoryDetail(fileId)
+    }
+  }, [historyDetails, loadHistoryDetail])
+
   const deleteHistoryItem = useCallback(async (fileId: string) => {
     try {
       const res = await fetch(`/api/documents/${fileId}`, { method: 'DELETE' })
@@ -186,7 +215,10 @@ export default function OcrPage() {
           Bosh sahifa
         </Link>
         <h1 className="ocr-nav-title">Rasmdan matn AI</h1>
-        <div style={{ width: 120 }} />
+        <div className="nav-links">
+          <Link to="/letters" className="nav-link">Hatlar</Link>
+          <Link to="/meeting" className="nav-link">Majlis</Link>
+        </div>
       </nav>
 
       <main className="ocr-main-multi">
@@ -271,36 +303,64 @@ export default function OcrPage() {
             <div className="history-list">
               {history.map(doc => (
                 <div className={`history-item history-${doc.status}`} key={doc.file_id}>
-                  <div className="history-info">
-                    <svg className="history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-                      <path d="M14 2v6h6" />
-                    </svg>
-                    <div>
-                      <span className="history-id">{doc.file_id.slice(0, 8)}...</span>
-                      {doc.created_at && (
-                        <span className="history-date">{new Date(doc.created_at).toLocaleString('uz-UZ')}</span>
+                  <button
+                    className="history-toggle"
+                    onClick={() => toggleHistoryItem(doc.file_id)}
+                    type="button"
+                  >
+                    <div className="history-info">
+                      <svg className="history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                        <path d="M14 2v6h6" />
+                      </svg>
+                      <div>
+                        <span className="history-id">{doc.file_id.slice(0, 8)}...</span>
+                        {doc.created_at && (
+                          <span className="history-date">{new Date(doc.created_at).toLocaleString('uz-UZ')}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="history-meta">
+                      {doc.total_page_count && doc.total_page_count > 0 && (
+                        <span className="page-badge">{doc.total_page_count} sahifa</span>
+                      )}
+                      <HistoryStatusBadge status={doc.status} />
+                      <svg className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? 'expanded' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                      <button
+                        className="history-delete-btn"
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(doc.file_id) }}
+                        title="O'chirish"
+                        type="button"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                        </svg>
+                      </button>
+                    </div>
+                  </button>
+
+                  {expandedHistoryIds.includes(doc.file_id) && (
+                    <div className="history-detail">
+                      {historyDetails[doc.file_id]?.loading && (
+                        <div className="job-processing">
+                          <div className="spinner-sm" />
+                          <span>Ma'lumot yuklanmoqda...</span>
+                        </div>
+                      )}
+                      {historyDetails[doc.file_id]?.error && (
+                        <div className="job-error">
+                          <p>{historyDetails[doc.file_id]?.error}</p>
+                        </div>
+                      )}
+                      {!historyDetails[doc.file_id]?.loading && !historyDetails[doc.file_id]?.error && historyDetails[doc.file_id]?.content && (
+                        <pre className="result-content">{historyDetails[doc.file_id]?.content}</pre>
                       )}
                     </div>
-                  </div>
-                  <div className="history-meta">
-                    {doc.total_page_count && doc.total_page_count > 0 && (
-                      <span className="page-badge">{doc.total_page_count} sahifa</span>
-                    )}
-                    <HistoryStatusBadge status={doc.status} />
-                    <button
-                      className="history-delete-btn"
-                      onClick={() => setDeleteConfirmId(doc.file_id)}
-                      title="O'chirish"
-                      type="button"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-                        <path d="M3 6h18" />
-                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                      </svg>
-                    </button>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>

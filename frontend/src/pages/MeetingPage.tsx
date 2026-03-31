@@ -294,7 +294,10 @@ export default function MeetingPage() {
           Bosh sahifa
         </Link>
         <h1 className="ocr-nav-title">Majlis stenografiyasi</h1>
-        <div style={{ width: 120 }} />
+        <div className="nav-links">
+          <Link to="/ocr" className="nav-link">OCR</Link>
+          <Link to="/letters" className="nav-link">Hatlar</Link>
+        </div>
       </nav>
 
       <main className="meeting-main">

@@ -190,7 +190,7 @@ async def extract_issues(text):
 async def _select_department(officials_yaml, summary):
     response = await openai.responses.parse(
         model=MODEL,
-        instructions=f"""
+        input=f"""
             Given a citizen complaint or government letter, select the district administration official who should handle the issue or who is the most likely intended recipient of the letter.
 
             Your goal is to find the single best-matching official based on the letter's content.
@@ -321,3 +321,4 @@ async def check_for_repeated_request(text):
 
     parsed = response.output_parsed
     return parsed.model_dump() if parsed else {}
+lse {}
