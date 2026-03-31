@@ -370,8 +370,12 @@ export default function LettersPage() {
         </Link>
         <h1 className="ocr-nav-title">Hatlar AI</h1>
         <div className="nav-links">
-          <Link to="/ocr" className="nav-link">OCR</Link>
-          <Link to="/meeting" className="nav-link">Majlis</Link>
+          <Link to="/ocr" className="nav-link">
+            Rasmdan matn AI
+          </Link>
+          <Link to="/meeting" className="nav-link">
+            Majlis stenografiyasi
+          </Link>
         </div>
       </nav>
 
@@ -443,12 +447,23 @@ export default function LettersPage() {
                                 className="header-icon-btn"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setPreviewJobId(previewJobId === job.id ? null : job.id);
+                                  setPreviewJobId(
+                                    previewJobId === job.id ? null : job.id,
+                                  );
                                 }}
                                 title="Ko'rish"
                                 type="button"
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  width="16"
+                                  height="16"
+                                >
                                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                   <circle cx="12" cy="12" r="3" />
                                 </svg>
@@ -461,7 +476,16 @@ export default function LettersPage() {
                                 onClick={(e) => e.stopPropagation()}
                                 title="Yuklab olish"
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  width="16"
+                                  height="16"
+                                >
                                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                   <polyline points="7 10 12 15 17 10" />
                                   <line x1="12" y1="15" x2="12" y2="3" />
@@ -469,7 +493,17 @@ export default function LettersPage() {
                               </a>
                             </>
                           )}
-                          <svg className={`history-chevron ${isExpanded ? "expanded" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                          <svg
+                            className={`history-chevron ${isExpanded ? "expanded" : ""}`}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            width="18"
+                            height="18"
+                          >
                             <path d="m6 9 6 6 6-6" />
                           </svg>
                           <button
@@ -598,7 +632,17 @@ export default function LettersPage() {
                             </span>
                           )}
                           <HistoryStatusBadge status={doc.status} />
-                          <svg className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? "expanded" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                          <svg
+                            className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? "expanded" : ""}`}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            width="18"
+                            height="18"
+                          >
                             <path d="m6 9 6 6 6-6" />
                           </svg>
                           <button
@@ -739,10 +783,7 @@ export default function LettersPage() {
           className="preview-modal-overlay"
           onClick={() => setDeleteConfirmId(null)}
         >
-          <div
-            className="confirm-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Hujjatni o'chirish</h3>
             <p>Haqiqatan ham bu hujjatni o'chirmoqchimisiz?</p>
             <div className="confirm-actions">

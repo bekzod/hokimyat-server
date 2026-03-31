@@ -385,7 +385,7 @@
   background: var(--icon-bg);
   color: var(--blue);
   display: inline-block;
-  margin-bottom: 8px;
+  /* margin-bottom: 8px; */
 }
 
 .result-content {

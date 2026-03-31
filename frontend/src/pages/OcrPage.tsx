@@ -209,15 +209,26 @@ export default function OcrPage() {
     <div className="ocr">
       <nav className="ocr-nav">
         <Link to="/" className="back-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="m15 18-6-6 6-6" />
           </svg>
           Bosh sahifa
         </Link>
         <h1 className="ocr-nav-title">Rasmdan matn AI</h1>
         <div className="nav-links">
-          <Link to="/letters" className="nav-link">Hatlar</Link>
-          <Link to="/meeting" className="nav-link">Majlis</Link>
+          <Link to="/letters" className="nav-link">
+            Hatlar AI
+          </Link>
+          <Link to="/meeting" className="nav-link">
+            Majlis stenografiyasi
+          </Link>
         </div>
       </nav>
 
@@ -226,7 +237,7 @@ export default function OcrPage() {
 
         {hasJobs && (
           <div className="jobs-list">
-            {jobs.map(job => (
+            {jobs.map((job) => (
               <div className={`job-card job-${job.status}`} key={job.id}>
                 <div className="job-header">
                   <div className="job-file-info">
@@ -237,46 +248,69 @@ export default function OcrPage() {
                     )}
                     <div>
                       <span className="job-file-name">{job.file.name}</span>
-                      <span className="job-file-size">{(job.file.size / 1024).toFixed(0)} KB</span>
+                      <span className="job-file-size">
+                        {(job.file.size / 1024).toFixed(0)} KB
+                      </span>
                     </div>
                   </div>
                   <div className="job-actions">
                     <StatusBadge status={job.status} />
-                    <button className="job-remove" onClick={() => removeJob(job.id)} title="Olib tashlash">
+                    <button
+                      className="job-remove"
+                      onClick={() => removeJob(job.id)}
+                      title="Olib tashlash"
+                    >
                       &times;
                     </button>
                   </div>
                 </div>
 
-                {job.status === 'uploading' && (
+                {job.status === "uploading" && (
                   <div className="job-progress">
                     <div className="progress-bar-container">
-                      <div className="progress-bar" style={{ width: `${job.uploadProgress}%` }} />
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${job.uploadProgress}%` }}
+                      />
                     </div>
-                    <span className="progress-label">{job.uploadProgress}%</span>
+                    <span className="progress-label">
+                      {job.uploadProgress}%
+                    </span>
                   </div>
                 )}
 
-                {job.status === 'processing' && (
+                {job.status === "processing" && (
                   <div className="job-progress">
                     <div className="progress-bar-container">
-                      <div className="progress-bar progress-bar-processing" style={{ width: `${job.processingProgress}%` }} />
+                      <div
+                        className="progress-bar progress-bar-processing"
+                        style={{ width: `${job.processingProgress}%` }}
+                      />
                     </div>
-                    <span className="progress-label">{job.processingProgress}%</span>
+                    <span className="progress-label">
+                      {job.processingProgress}%
+                    </span>
                     <span className="progress-stage">{job.progressStage}</span>
                   </div>
                 )}
 
-                {job.status === 'error' && (
+                {job.status === "error" && (
                   <div className="job-error">
                     <p>{job.error}</p>
-                    <button className="retry-btn-sm" onClick={() => retryJob(job)}>Qayta urinish</button>
+                    <button
+                      className="retry-btn-sm"
+                      onClick={() => retryJob(job)}
+                    >
+                      Qayta urinish
+                    </button>
                   </div>
                 )}
 
-                {job.status === 'completed' && (
+                {job.status === "completed" && (
                   <div className="job-result">
-                    {job.pageCount > 0 && <span className="page-badge">{job.pageCount} sahifa</span>}
+                    {job.pageCount > 0 && (
+                      <span className="page-badge">{job.pageCount} sahifa</span>
+                    )}
                     {job.fileId && (
                       <div className="file-preview-toggle">
                         <a
@@ -301,40 +335,77 @@ export default function OcrPage() {
           <div className="history-section">
             <h2 className="history-heading">Oxirgi hujjatlar</h2>
             <div className="history-list">
-              {history.map(doc => (
-                <div className={`history-item history-${doc.status}`} key={doc.file_id}>
+              {history.map((doc) => (
+                <div
+                  className={`history-item history-${doc.status}`}
+                  key={doc.file_id}
+                >
                   <button
                     className="history-toggle"
                     onClick={() => toggleHistoryItem(doc.file_id)}
                     type="button"
                   >
                     <div className="history-info">
-                      <svg className="history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg
+                        className="history-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
                         <path d="M14 2v6h6" />
                       </svg>
                       <div>
-                        <span className="history-id">{doc.file_id.slice(0, 8)}...</span>
+                        <span className="history-id">
+                          {doc.file_id.slice(0, 8)}...
+                        </span>
                         {doc.created_at && (
-                          <span className="history-date">{new Date(doc.created_at).toLocaleString('uz-UZ')}</span>
+                          <span className="history-date">
+                            {new Date(doc.created_at).toLocaleString("uz-UZ")}
+                          </span>
                         )}
                       </div>
                     </div>
                     <div className="history-meta">
                       {doc.total_page_count && doc.total_page_count > 0 && (
-                        <span className="page-badge">{doc.total_page_count} sahifa</span>
+                        <span className="page-badge">
+                          {doc.total_page_count} sahifa
+                        </span>
                       )}
                       <HistoryStatusBadge status={doc.status} />
-                      <svg className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? 'expanded' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                      <svg
+                        className={`history-chevron ${expandedHistoryIds.includes(doc.file_id) ? "expanded" : ""}`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        width="18"
+                        height="18"
+                      >
                         <path d="m6 9 6 6 6-6" />
                       </svg>
                       <button
                         className="history-delete-btn"
-                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(doc.file_id) }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirmId(doc.file_id);
+                        }}
                         title="O'chirish"
                         type="button"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          width="16"
+                          height="16"
+                        >
                           <path d="M3 6h18" />
                           <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
@@ -356,9 +427,13 @@ export default function OcrPage() {
                           <p>{historyDetails[doc.file_id]?.error}</p>
                         </div>
                       )}
-                      {!historyDetails[doc.file_id]?.loading && !historyDetails[doc.file_id]?.error && historyDetails[doc.file_id]?.content && (
-                        <pre className="result-content">{historyDetails[doc.file_id]?.content}</pre>
-                      )}
+                      {!historyDetails[doc.file_id]?.loading &&
+                        !historyDetails[doc.file_id]?.error &&
+                        historyDetails[doc.file_id]?.content && (
+                          <pre className="result-content">
+                            {historyDetails[doc.file_id]?.content}
+                          </pre>
+                        )}
                     </div>
                   )}
                 </div>
@@ -369,15 +444,26 @@ export default function OcrPage() {
       </main>
 
       {deleteConfirmId && (
-        <div className="preview-modal-overlay" onClick={() => setDeleteConfirmId(null)}>
-          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+        <div
+          className="preview-modal-overlay"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Hujjatni o'chirish</h3>
             <p>Haqiqatan ham bu hujjatni o'chirmoqchimisiz?</p>
             <div className="confirm-actions">
-              <button className="confirm-cancel" onClick={() => setDeleteConfirmId(null)} type="button">
+              <button
+                className="confirm-cancel"
+                onClick={() => setDeleteConfirmId(null)}
+                type="button"
+              >
                 Bekor qilish
               </button>
-              <button className="confirm-delete" onClick={() => deleteHistoryItem(deleteConfirmId)} type="button">
+              <button
+                className="confirm-delete"
+                onClick={() => deleteHistoryItem(deleteConfirmId)}
+                type="button"
+              >
                 O'chirish
               </button>
             </div>
@@ -385,7 +471,7 @@ export default function OcrPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function StatusBadge({ status }: { status: JobStatus }) {
