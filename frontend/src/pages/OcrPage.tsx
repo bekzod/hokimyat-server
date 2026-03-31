@@ -50,6 +50,7 @@ export default function OcrPage() {
   const [jobs, setJobs] = useState<OcrJob[]>([])
   const [history, setHistory] = useState<HistoryDoc[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const pollingRefs = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map())
 
   const fetchHistory = useCallback(async () => {
@@ -161,6 +162,16 @@ export default function OcrPage() {
       if (job?.previewUrl) URL.revokeObjectURL(job.previewUrl)
       return prev.filter(j => j.id !== id)
     })
+  }, [])
+
+  const deleteHistoryItem = useCallback(async (fileId: string) => {
+    try {
+      const res = await fetch(`/api/documents/${fileId}`, { method: 'DELETE' })
+      if (res.ok) {
+        setHistory(prev => prev.filter(d => d.file_id !== fileId))
+      }
+    } catch { /* ignore */ }
+    finally { setDeleteConfirmId(null) }
   }, [])
 
   const hasJobs = jobs.length > 0
@@ -277,6 +288,18 @@ export default function OcrPage() {
                       <span className="page-badge">{doc.total_page_count} sahifa</span>
                     )}
                     <HistoryStatusBadge status={doc.status} />
+                    <button
+                      className="history-delete-btn"
+                      onClick={() => setDeleteConfirmId(doc.file_id)}
+                      title="O'chirish"
+                      type="button"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -284,6 +307,23 @@ export default function OcrPage() {
           </div>
         )}
       </main>
+
+      {deleteConfirmId && (
+        <div className="preview-modal-overlay" onClick={() => setDeleteConfirmId(null)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <h3>Hujjatni o'chirish</h3>
+            <p>Haqiqatan ham bu hujjatni o'chirmoqchimisiz?</p>
+            <div className="confirm-actions">
+              <button className="confirm-cancel" onClick={() => setDeleteConfirmId(null)} type="button">
+                Bekor qilish
+              </button>
+              <button className="confirm-delete" onClick={() => deleteHistoryItem(deleteConfirmId)} type="button">
+                O'chirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

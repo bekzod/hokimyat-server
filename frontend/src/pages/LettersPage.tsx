@@ -100,7 +100,9 @@ export default function LettersPage() {
   const [inputMode, setInputMode] = useState<InputMode>("file");
   const [jobs, setJobs] = useState<LetterJob[]>([]);
   const [history, setHistory] = useState<HistoryDoc[]>([]);
+  const [expandedJobIds, setExpandedJobIds] = useState<string[]>([]);
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<string[]>([]);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [historyDetails, setHistoryDetails] = useState<
     Record<string, HistoryDetail>
   >({});
@@ -299,6 +301,25 @@ export default function LettersPage() {
     [historyDetails, loadHistoryDetail],
   );
 
+  const deleteHistoryItem = useCallback(
+    async (fileId: string) => {
+      try {
+        const res = await fetch(`/api/documents/${fileId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setHistory((prev) => prev.filter((d) => d.file_id !== fileId));
+          setExpandedHistoryIds((prev) => prev.filter((id) => id !== fileId));
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setDeleteConfirmId(null);
+      }
+    },
+    [],
+  );
+
   const analyzeText = async () => {
     if (!rawText.trim()) return;
     setTextStatus("processing");
@@ -372,76 +393,107 @@ export default function LettersPage() {
 
             {jobs.length > 0 && (
               <div className="jobs-list">
-                {jobs.map((job) => (
-                  <div className={`job-card job-${job.status}`} key={job.id}>
-                    <div className="job-header">
-                      <div className="job-file-info">
-                        {job.previewUrl ? (
-                          <img
-                            className="job-thumb"
-                            src={job.previewUrl}
-                            alt=""
-                          />
-                        ) : (
-                          <div className="job-thumb job-thumb-pdf">PDF</div>
-                        )}
-                        <div>
-                          <span className="job-file-name">{job.fileName}</span>
-                          <span className="job-file-size">
-                            {(job.fileSize / 1024).toFixed(0)} KB
+                {jobs.map((job) => {
+                  const isExpanded =
+                    expandedJobIds.includes(job.id) ||
+                    job.status === "uploading" ||
+                    job.status === "processing" ||
+                    job.status === "queued";
+                  return (
+                    <div className={`job-card job-${job.status}`} key={job.id}>
+                      <button
+                        className="job-header"
+                        type="button"
+                        onClick={() =>
+                          setExpandedJobIds((prev) =>
+                            prev.includes(job.id)
+                              ? prev.filter((id) => id !== job.id)
+                              : [...prev, job.id],
+                          )
+                        }
+                      >
+                        <div className="job-file-info">
+                          {job.previewUrl ? (
+                            <img
+                              className="job-thumb"
+                              src={job.previewUrl}
+                              alt=""
+                            />
+                          ) : (
+                            <div className="job-thumb job-thumb-pdf">PDF</div>
+                          )}
+                          <div>
+                            <span className="job-file-name">
+                              {job.fileName}
+                            </span>
+                            <span className="job-file-size">
+                              {(job.fileSize / 1024).toFixed(0)} KB
+                            </span>
+                          </div>
+                        </div>
+                        <div className="job-actions">
+                          <StatusBadge status={job.status} />
+                          <span className="history-chevron">
+                            {isExpanded ? "Yopish" : "Ko'rish"}
                           </span>
+                          <button
+                            className="job-remove"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeJob(job.id);
+                            }}
+                            title="Olib tashlash"
+                          >
+                            &times;
+                          </button>
                         </div>
-                      </div>
-                      <div className="job-actions">
-                        <StatusBadge status={job.status} />
-                        <button
-                          className="job-remove"
-                          onClick={() => removeJob(job.id)}
-                          title="Olib tashlash"
-                        >
-                          &times;
-                        </button>
-                      </div>
+                      </button>
+
+                      {isExpanded && (
+                        <>
+                          {job.status === "uploading" && (
+                            <div className="job-progress">
+                              <div className="progress-bar-container">
+                                <div
+                                  className="progress-bar"
+                                  style={{
+                                    width: `${job.uploadProgress}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="progress-label">
+                                {job.uploadProgress}%
+                              </span>
+                            </div>
+                          )}
+
+                          {job.status === "processing" && (
+                            <div className="job-processing">
+                              <div className="spinner-sm" />
+                              <span>Tahlil qilinmoqda...</span>
+                            </div>
+                          )}
+
+                          {job.status === "error" && (
+                            <div className="job-error">
+                              <p>{job.error}</p>
+                            </div>
+                          )}
+
+                          {job.status === "completed" && job.result && (
+                            <div className="job-result-analysis">
+                              <AnalysisDisplay
+                                result={job.result}
+                                content={job.content}
+                                fileId={job.fileId}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
-
-                    {job.status === "uploading" && (
-                      <div className="job-progress">
-                        <div className="progress-bar-container">
-                          <div
-                            className="progress-bar"
-                            style={{ width: `${job.uploadProgress}%` }}
-                          />
-                        </div>
-                        <span className="progress-label">
-                          {job.uploadProgress}%
-                        </span>
-                      </div>
-                    )}
-
-                    {job.status === "processing" && (
-                      <div className="job-processing">
-                        <div className="spinner-sm" />
-                        <span>Tahlil qilinmoqda...</span>
-                      </div>
-                    )}
-
-                    {job.status === "error" && (
-                      <div className="job-error">
-                        <p>{job.error}</p>
-                      </div>
-                    )}
-
-                    {job.status === "completed" && job.result && (
-                      <div className="job-result-analysis">
-                        <AnalysisDisplay
-                          result={job.result}
-                          content={job.content}
-                          fileId={job.fileId}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -495,6 +547,30 @@ export default function LettersPage() {
                               ? "Yopish"
                               : "Ko'rish"}
                           </span>
+                          <button
+                            className="history-delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirmId(doc.file_id);
+                            }}
+                            title="O'chirish"
+                            type="button"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              width="16"
+                              height="16"
+                            >
+                              <path d="M3 6h18" />
+                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            </svg>
+                          </button>
                         </div>
                       </button>
 
@@ -603,6 +679,37 @@ export default function LettersPage() {
           </>
         )}
       </main>
+
+      {deleteConfirmId && (
+        <div
+          className="preview-modal-overlay"
+          onClick={() => setDeleteConfirmId(null)}
+        >
+          <div
+            className="confirm-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Hujjatni o'chirish</h3>
+            <p>Haqiqatan ham bu hujjatni o'chirmoqchimisiz?</p>
+            <div className="confirm-actions">
+              <button
+                className="confirm-cancel"
+                onClick={() => setDeleteConfirmId(null)}
+                type="button"
+              >
+                Bekor qilish
+              </button>
+              <button
+                className="confirm-delete"
+                onClick={() => deleteHistoryItem(deleteConfirmId)}
+                type="button"
+              >
+                O'chirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -620,6 +727,18 @@ function AnalysisDisplay({
 
   return (
     <>
+      {(result.department?.full_name || result.department?.position) && (
+        <section className="card official-hero">
+          <h3>Mas'ul xodim</h3>
+          {result.department?.full_name && (
+            <p className="official-name">{result.department.full_name}</p>
+          )}
+          {result.department?.position && (
+            <p className="official-position">{result.department.position}</p>
+          )}
+        </section>
+      )}
+
       {fileId && (
         <section className="card">
           <div className="content-header">
@@ -643,21 +762,24 @@ function AnalysisDisplay({
             </div>
           </div>
           {showPreview && (
-            <div className="file-preview">
-              <FilePreview fileId={fileId} />
+            <div
+              className="preview-modal-overlay"
+              onClick={() => setShowPreview(false)}
+            >
+              <div
+                className="preview-modal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="preview-modal-close"
+                  onClick={() => setShowPreview(false)}
+                  type="button"
+                >
+                  &times;
+                </button>
+                <FilePreview fileId={fileId} />
+              </div>
             </div>
-          )}
-        </section>
-      )}
-
-      {(result.department?.full_name || result.department?.position) && (
-        <section className="card official-hero">
-          <h3>Mas'ul xodim</h3>
-          {result.department?.full_name && (
-            <p className="official-name">{result.department.full_name}</p>
-          )}
-          {result.department?.position && (
-            <p className="official-position">{result.department.position}</p>
           )}
         </section>
       )}
@@ -778,6 +900,9 @@ function AuthorCard({ info }: { info: AuthorInfo }) {
     .filter(Boolean)
     .join(" ");
   const fields: [string, string | undefined][] = [
+    ["Familiya", info.last_name],
+    ["Ism", info.first_name],
+    ["Otasining ismi", info.middle_name],
     ["Tug'ilgan sana", info.date_of_birth],
     [
       "Jinsi",

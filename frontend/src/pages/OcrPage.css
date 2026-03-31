@@ -155,6 +155,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
 .job-file-info {
@@ -594,6 +602,98 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* ── History delete button ── */
+.history-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.history-delete-btn:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
+}
+
+/* ── Confirmation modal ── */
+.preview-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-modal {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 400px;
+  width: 90vw;
+  animation: fadeUp 0.35s ease-out;
+}
+
+.confirm-modal h3 {
+  font-family: var(--heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 8px;
+}
+
+.confirm-modal p {
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.confirm-cancel,
+.confirm-delete {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  transition: background 0.2s, color 0.2s;
+}
+
+.confirm-cancel {
+  background: var(--icon-bg);
+  color: var(--text-heading);
+}
+
+.confirm-cancel:hover {
+  background: var(--card-border);
+}
+
+.confirm-delete {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
+}
+
+.confirm-delete:hover {
+  background: #a93226;
 }
 
 /* ── Responsive ── */

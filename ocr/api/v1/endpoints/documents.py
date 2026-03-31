@@ -1,5 +1,5 @@
 """
-Documents Endpoints — list documents.
+Documents Endpoints — list and delete documents.
 """
 
 from api.deps import get_document_service
@@ -27,3 +27,16 @@ async def list_documents(
         }
         for doc in documents
     ]
+
+
+@router.delete("/documents/{file_id}", tags=["documents"])
+async def delete_document(
+    file_id: str,
+    document_service: DocumentService = Depends(get_document_service),
+):
+    """Delete a document by file_id."""
+    deleted = await document_service.delete_document(file_id)
+    if not deleted:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Hujjat topilmadi")
+    return {"detail": "Hujjat o'chirildi"}

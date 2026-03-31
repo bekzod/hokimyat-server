@@ -93,6 +93,14 @@ class DocumentService:
         """List recent documents."""
         return await self.repository.list_recent(limit=limit, offset=offset)
 
+    async def delete_document(self, file_id: str) -> bool:
+        """Delete a document by ID."""
+        self.validate_uuid(file_id)
+        deleted = await self.repository.delete_by_uuid(file_id)
+        if deleted:
+            await self.repository.commit()
+        return deleted
+
     async def update_manual_input(self, file_id: str, payload: dict):
         """Apply manual corrections to document metadata."""
         self.validate_uuid(file_id)
