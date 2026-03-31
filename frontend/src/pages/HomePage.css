@@ -153,10 +153,16 @@
   z-index: 1;
   flex: 1;
   padding: 48px 24px;
-  max-width: 880px;
+  max-width: 1020px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
+}
+
+@media (max-width: 940px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .services-heading {
@@ -172,7 +178,7 @@
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 

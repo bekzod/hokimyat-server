@@ -288,27 +288,48 @@ export default function MeetingPage() {
     <div className="meeting">
       <nav className="ocr-nav">
         <Link to="/" className="back-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="m15 18-6-6 6-6" />
           </svg>
           Bosh sahifa
         </Link>
         <h1 className="ocr-nav-title">Majlis stenografiyasi</h1>
         <div className="nav-links">
-          <Link to="/ocr" className="nav-link">OCR</Link>
-          <Link to="/letters" className="nav-link">Hatlar</Link>
+          <Link to="/ocr" className="nav-link">
+            Rasmdan matn AI
+          </Link>
+          <Link to="/letters" className="nav-link">
+            Hatlar AI
+          </Link>
         </div>
       </nav>
 
       <main className="meeting-main">
-        {(status === 'idle' || status === 'recording') && (
+        {(status === "idle" || status === "recording") && (
           <div className="mode-toggle">
             <button
-              className={`mode-btn ${inputMode === 'upload' ? 'active' : ''}`}
-              onClick={() => { if (status !== 'recording') setInputMode('upload') }}
-              disabled={status === 'recording'}
+              className={`mode-btn ${inputMode === "upload" ? "active" : ""}`}
+              onClick={() => {
+                if (status !== "recording") setInputMode("upload");
+              }}
+              disabled={status === "recording"}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mode-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mode-icon"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
@@ -316,11 +337,21 @@ export default function MeetingPage() {
               Audio yuklash
             </button>
             <button
-              className={`mode-btn ${inputMode === 'mic' ? 'active' : ''}`}
-              onClick={() => { if (status !== 'recording') setInputMode('mic') }}
-              disabled={status === 'recording'}
+              className={`mode-btn ${inputMode === "mic" ? "active" : ""}`}
+              onClick={() => {
+                if (status !== "recording") setInputMode("mic");
+              }}
+              disabled={status === "recording"}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mode-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mode-icon"
+              >
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                 <line x1="12" y1="19" x2="12" y2="22" />
@@ -330,16 +361,29 @@ export default function MeetingPage() {
           </div>
         )}
 
-        {inputMode === 'upload' && status === 'idle' && (
+        {inputMode === "upload" && status === "idle" && (
           <div
             className="audio-drop-zone"
             onClick={() => fileInputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over') }}
-            onDragLeave={(e) => e.currentTarget.classList.remove('drag-over')}
-            onDrop={(e) => { e.currentTarget.classList.remove('drag-over'); handleDrop(e) }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add("drag-over");
+            }}
+            onDragLeave={(e) => e.currentTarget.classList.remove("drag-over")}
+            onDrop={(e) => {
+              e.currentTarget.classList.remove("drag-over");
+              handleDrop(e);
+            }}
           >
             <div className="audio-drop-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M9 18V5l12-2v13" />
                 <circle cx="6" cy="18" r="3" />
                 <circle cx="18" cy="16" r="3" />
@@ -358,11 +402,18 @@ export default function MeetingPage() {
           </div>
         )}
 
-        {inputMode === 'mic' && status === 'idle' && (
+        {inputMode === "mic" && status === "idle" && (
           <div className="mic-section">
             <button className="mic-start-btn" onClick={startRecording}>
               <div className="mic-btn-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                   <line x1="12" y1="19" x2="12" y2="22" />
@@ -370,20 +421,29 @@ export default function MeetingPage() {
               </div>
               Yozishni boshlash
             </button>
-            <p className="mic-hint">Mikrofon orqali majlis yozib olinadi — audio real vaqtda serverga uzatiladi</p>
+            <p className="mic-hint">
+              Mikrofon orqali majlis yozib olinadi — audio real vaqtda serverga
+              uzatiladi
+            </p>
           </div>
         )}
 
-        {status === 'recording' && (
+        {status === "recording" && (
           <div className="recording-section">
             <div className="recording-visualizer">
-              <div className="recording-pulse" style={{ transform: `scale(${1 + audioLevel * 0.5})` }} />
+              <div
+                className="recording-pulse"
+                style={{ transform: `scale(${1 + audioLevel * 0.5})` }}
+              />
               <div className="recording-dot" />
             </div>
             <p className="recording-time">{formatTime(recordingTime)}</p>
             <p className="recording-label">Yozilmoqda...</p>
             <div className="level-bar-container">
-              <div className="level-bar" style={{ width: `${audioLevel * 100}%` }} />
+              <div
+                className="level-bar"
+                style={{ width: `${audioLevel * 100}%` }}
+              />
             </div>
             {streamBytes > 0 && (
               <p className="stream-info">Uzatildi: {formatSize(streamBytes)}</p>
@@ -397,10 +457,16 @@ export default function MeetingPage() {
           </div>
         )}
 
-        {status === 'uploading' && (
+        {status === "uploading" && (
           <div className="upload-state">
             <div className="upload-file-info">
-              <svg className="upload-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg
+                className="upload-file-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
                 <path d="M9 18V5l12-2v13" />
                 <circle cx="6" cy="18" r="3" />
                 <circle cx="18" cy="16" r="3" />
@@ -409,7 +475,10 @@ export default function MeetingPage() {
             </div>
             <div className="job-progress">
               <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${uploadProgress}%` }} />
+                <div
+                  className="progress-bar"
+                  style={{ width: `${uploadProgress}%` }}
+                />
               </div>
               <span className="progress-label">{uploadProgress}%</span>
             </div>
@@ -417,7 +486,7 @@ export default function MeetingPage() {
           </div>
         )}
 
-        {status === 'saving' && (
+        {status === "saving" && (
           <div className="processing-state">
             <div className="spinner" />
             <p className="processing-text">Audio saqlanmoqda...</p>
@@ -425,49 +494,76 @@ export default function MeetingPage() {
           </div>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <div className="error-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <circle cx="12" cy="12" r="10" />
               <line x1="15" y1="9" x2="9" y2="15" />
               <line x1="9" y1="9" x2="15" y2="15" />
             </svg>
             <p>{error}</p>
-            <button className="retry-btn" onClick={reset}>Qayta urinish</button>
+            <button className="retry-btn" onClick={reset}>
+              Qayta urinish
+            </button>
           </div>
         )}
 
-        {status === 'completed' && savedAudio && (
+        {status === "completed" && savedAudio && (
           <div className="transcript-result">
             <div className="transcript-header">
               <h2>Audio saqlandi</h2>
             </div>
             <div className="saved-audio-card">
               <div className="saved-audio-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M9 18V5l12-2v13" />
                   <circle cx="6" cy="18" r="3" />
                   <circle cx="18" cy="16" r="3" />
                 </svg>
               </div>
               <div className="saved-audio-details">
-                {savedAudio.filename && <p className="saved-filename">{savedAudio.filename}</p>}
-                {savedAudio.session_id && <p className="saved-filename">Jonli yozuv</p>}
+                {savedAudio.filename && (
+                  <p className="saved-filename">{savedAudio.filename}</p>
+                )}
+                {savedAudio.session_id && (
+                  <p className="saved-filename">Jonli yozuv</p>
+                )}
                 <p className="saved-meta">
                   {formatSize(savedAudio.size)}
                   <span className="saved-key">{savedAudio.key}</span>
                 </p>
               </div>
               <div className="saved-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
             </div>
-            <button className="retry-btn" onClick={reset}>Yangi audio</button>
+            <button className="retry-btn" onClick={reset}>
+              Yangi audio
+            </button>
           </div>
         )}
       </main>
     </div>
-  )
+  );
 }
