@@ -31,6 +31,35 @@
     );
 }
 
+/* ── Theme toggle ── */
+.theme-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* ── Header / Gerb ── */
 .home-header {
   position: relative;
@@ -43,7 +72,7 @@
     var(--blue) 100%
   );
   color: #fff;
-  animation: headerReveal 0.8s ease-out;
+  animation: headerReveal 0.5s ease-out;
 }
 
 @keyframes headerReveal {
@@ -60,7 +89,7 @@
   justify-content: center;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-  animation: gerbPulse 3s ease-in-out infinite;
+  animation: gerbPulse 2s ease-in-out infinite;
 }
 
 @keyframes gerbPulse {
@@ -157,14 +186,14 @@
   border: 1px solid var(--card-border);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-  animation: cardIn 0.6s ease-out both;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  animation: cardIn 0.35s ease-out both;
 }
 
-.service-card:nth-child(1) { animation-delay: 0.15s; }
-.service-card:nth-child(2) { animation-delay: 0.25s; }
-.service-card:nth-child(3) { animation-delay: 0.35s; }
-.service-card:nth-child(4) { animation-delay: 0.45s; }
+.service-card:nth-child(1) { animation-delay: 0.08s; }
+.service-card:nth-child(2) { animation-delay: 0.15s; }
+.service-card:nth-child(3) { animation-delay: 0.22s; }
+.service-card:nth-child(4) { animation-delay: 0.29s; }
 
 @keyframes cardIn {
   from { opacity: 0; transform: translateY(16px); }
@@ -186,7 +215,7 @@
   justify-content: center;
   border-radius: 10px;
   background: var(--icon-bg);
-  color: var(--blue);
+  color: var(--icon-color);
 }
 
 .service-icon svg {
@@ -222,7 +251,7 @@
   color: var(--text-muted);
   opacity: 0;
   transform: translateX(-6px);
-  transition: opacity 0.25s, transform 0.25s;
+  transition: opacity 0.18s, transform 0.18s;
 }
 
 .service-card:hover .service-arrow {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import FileDropzone from '../components/FileDropzone'
 import './OcrPage.css'
@@ -8,22 +8,37 @@ type JobStatus = 'queued' | 'uploading' | 'processing' | 'completed' | 'error'
 interface OcrJob {
   id: string
   file: File
+  previewUrl: string | null
   status: JobStatus
   uploadProgress: number
+  processingProgress: number
+  progressStage: string
   content: string
   pageCount: number
   error: string
   fileId: string | null
 }
 
+interface HistoryDoc {
+  file_id: string
+  status: string
+  total_page_count: number | null
+  created_at: string | null
+  has_content: boolean
+}
+
 let jobCounter = 0
 
 function createJob(file: File): OcrJob {
+  const isImage = file.type.startsWith('image/')
   return {
     id: `job-${++jobCounter}`,
     file,
+    previewUrl: isImage ? URL.createObjectURL(file) : null,
     status: 'queued',
     uploadProgress: 0,
+    processingProgress: 0,
+    progressStage: '',
     content: '',
     pageCount: 0,
     error: '',
@@ -33,7 +48,21 @@ function createJob(file: File): OcrJob {
 
 export default function OcrPage() {
   const [jobs, setJobs] = useState<OcrJob[]>([])
+  const [history, setHistory] = useState<HistoryDoc[]>([])
+  const [historyLoading, setHistoryLoading] = useState(true)
   const pollingRefs = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map())
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch('/api/documents/?limit=20')
+      if (res.ok) {
+        setHistory(await res.json())
+      }
+    } catch { /* ignore */ }
+    finally { setHistoryLoading(false) }
+  }, [])
+
+  useEffect(() => { fetchHistory() }, [fetchHistory])
 
   const updateJob = useCallback((id: string, patch: Partial<OcrJob>) => {
     setJobs(prev => prev.map(j => (j.id === id ? { ...j, ...patch } : j)))
@@ -53,13 +82,22 @@ export default function OcrPage() {
             status: 'completed',
             content: data.content || '',
             pageCount: data.total_page_count || 0,
+            processingProgress: 100,
+            progressStage: '',
           })
+          fetchHistory()
         } else if (data.status === 'error') {
           clearInterval(interval)
           pollingRefs.current.delete(jobId)
           updateJob(jobId, {
             status: 'error',
             error: data.error_message || 'Xatolik yuz berdi',
+          })
+        } else {
+          // Still processing — update progress
+          updateJob(jobId, {
+            processingProgress: data.progress ?? 0,
+            progressStage: data.progress_stage ?? 'Ishlanmoqda...',
           })
         }
       } catch {
@@ -69,7 +107,7 @@ export default function OcrPage() {
       }
     }, 2000)
     pollingRefs.current.set(jobId, interval)
-  }, [updateJob])
+  }, [updateJob, fetchHistory])
 
   const uploadOne = useCallback((job: OcrJob) => {
     updateJob(job.id, { status: 'uploading', uploadProgress: 0 })
@@ -87,7 +125,7 @@ export default function OcrPage() {
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         const data = JSON.parse(xhr.responseText)
-        updateJob(job.id, { status: 'processing', fileId: data.file_id })
+        updateJob(job.id, { status: 'processing', fileId: data.file_id, processingProgress: 0, progressStage: 'Navbatda...' })
         pollStatus(job.id, data.file_id)
       } else {
         let msg = `Server xatosi: ${xhr.status}`
@@ -118,7 +156,11 @@ export default function OcrPage() {
       clearInterval(interval)
       pollingRefs.current.delete(id)
     }
-    setJobs(prev => prev.filter(j => j.id !== id))
+    setJobs(prev => {
+      const job = prev.find(j => j.id === id)
+      if (job?.previewUrl) URL.revokeObjectURL(job.previewUrl)
+      return prev.filter(j => j.id !== id)
+    })
   }, [])
 
   const hasJobs = jobs.length > 0
@@ -145,10 +187,11 @@ export default function OcrPage() {
               <div className={`job-card job-${job.status}`} key={job.id}>
                 <div className="job-header">
                   <div className="job-file-info">
-                    <svg className="job-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-                      <path d="M14 2v6h6" />
-                    </svg>
+                    {job.previewUrl ? (
+                      <img className="job-thumb" src={job.previewUrl} alt="" />
+                    ) : (
+                      <div className="job-thumb job-thumb-pdf">PDF</div>
+                    )}
                     <div>
                       <span className="job-file-name">{job.file.name}</span>
                       <span className="job-file-size">{(job.file.size / 1024).toFixed(0)} KB</span>
@@ -172,9 +215,12 @@ export default function OcrPage() {
                 )}
 
                 {job.status === 'processing' && (
-                  <div className="job-processing">
-                    <div className="spinner-sm" />
-                    <span>Matn ajratilmoqda...</span>
+                  <div className="job-progress">
+                    <div className="progress-bar-container">
+                      <div className="progress-bar progress-bar-processing" style={{ width: `${job.processingProgress}%` }} />
+                    </div>
+                    <span className="progress-label">{job.processingProgress}%</span>
+                    <span className="progress-stage">{job.progressStage}</span>
                   </div>
                 )}
 
@@ -195,6 +241,36 @@ export default function OcrPage() {
             ))}
           </div>
         )}
+
+        {!historyLoading && history.length > 0 && (
+          <div className="history-section">
+            <h2 className="history-heading">Oxirgi hujjatlar</h2>
+            <div className="history-list">
+              {history.map(doc => (
+                <div className={`history-item history-${doc.status}`} key={doc.file_id}>
+                  <div className="history-info">
+                    <svg className="history-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                      <path d="M14 2v6h6" />
+                    </svg>
+                    <div>
+                      <span className="history-id">{doc.file_id.slice(0, 8)}...</span>
+                      {doc.created_at && (
+                        <span className="history-date">{new Date(doc.created_at).toLocaleString('uz-UZ')}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="history-meta">
+                    {doc.total_page_count && doc.total_page_count > 0 && (
+                      <span className="page-badge">{doc.total_page_count} sahifa</span>
+                    )}
+                    <HistoryStatusBadge status={doc.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
@@ -209,4 +285,18 @@ function StatusBadge({ status }: { status: JobStatus }) {
     error: 'Xatolik',
   }
   return <span className={`status-badge status-${status}`}>{labels[status]}</span>
+}
+
+function HistoryStatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    processing: 'Ishlanmoqda',
+    completed: 'Tayyor',
+    failed: 'Xatolik',
+  }
+  const css: Record<string, string> = {
+    processing: 'status-processing',
+    completed: 'status-completed',
+    failed: 'status-error',
+  }
+  return <span className={`status-badge ${css[status] || 'status-queued'}`}>{labels[status] || status}</span>
 }

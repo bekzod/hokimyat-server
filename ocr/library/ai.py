@@ -18,7 +18,7 @@ _settings = get_settings()
 
 # Initializing clients
 openai = AsyncOpenAI(
-    base_url=_settings.openai_api_base_url,
+    **{"base_url": _settings.openai_api_base_url} if _settings.openai_api_base_url else {},
     api_key=_settings.openai_api_key,
 )
 

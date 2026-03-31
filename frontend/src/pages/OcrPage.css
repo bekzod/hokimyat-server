@@ -164,11 +164,25 @@
   min-width: 0;
 }
 
-.job-file-icon {
-  width: 28px;
-  height: 28px;
+.job-thumb {
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  color: var(--gold);
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--card-border);
+}
+
+.job-thumb-pdf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-family: var(--body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .job-file-name {
@@ -256,6 +270,18 @@
   color: var(--text-muted);
   min-width: 32px;
   text-align: right;
+}
+
+.progress-bar-processing {
+  background: var(--gold);
+  transition: width 0.5s ease;
+}
+
+.progress-stage {
+  font-family: var(--body);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* ── Job processing ── */
@@ -470,6 +496,82 @@
   font-weight: 700;
   color: var(--text-heading);
   margin: 0;
+}
+
+/* ── History section ── */
+.history-section {
+  width: 100%;
+  margin-top: 16px;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.history-heading {
+  font-family: var(--heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin: 0 0 12px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+
+.history-item.history-completed {
+  border-color: rgba(39, 174, 96, 0.2);
+}
+
+.history-item.history-failed {
+  border-color: rgba(192, 57, 43, 0.2);
+}
+
+.history-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.history-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--gold);
+}
+
+.history-id {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-heading);
+  display: block;
+}
+
+.history-date {
+  font-family: var(--body);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ── Responsive ── */

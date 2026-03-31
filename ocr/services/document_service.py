@@ -89,6 +89,10 @@ class DocumentService:
         self.validate_uuid(file_id)
         return await self.repository.get_by_uuid_or_raise(file_id)
 
+    async def list_recent(self, limit: int = 50, offset: int = 0):
+        """List recent documents."""
+        return await self.repository.list_recent(limit=limit, offset=offset)
+
     async def update_manual_input(self, file_id: str, payload: dict):
         """Apply manual corrections to document metadata."""
         self.validate_uuid(file_id)

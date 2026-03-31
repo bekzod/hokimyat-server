@@ -17,8 +17,10 @@ from core.database import AsyncSessionLocal
 from core.storage import get_storage
 from models.pdf import DocumentStatus
 from repositories.document_repository import DocumentRepository
-from services.extraction_service import get_extraction_service
+from services.extraction_service import content_type_to_format, get_extraction_service
 from utils.text import clean_extracted_content
+
+from core.progress import set_progress, clear_progress
 
 from .celery import celery_app
 
@@ -68,34 +70,54 @@ async def _process_document_task_async(
 
         document_record = None
         try:
+            set_progress(file_id, 5, "Hujjat yuklanmoqda...")
             extract_start_time = time.time()
 
-            # Fetch document record and generate presigned URL in parallel
+            # Fetch document record, presigned URL, and file metadata
             db_task = repository.get_by_uuid(file_id)
             presigned_url = await storage.generate_presigned_url(
                 file_id, expiration=1800
             )
+            file_meta = await storage.get_file_metadata(file_id)
+            content_type = file_meta.get("content_type") if file_meta else None
+            from_format = content_type_to_format(content_type)
+            logger.info(f"Detected format: {from_format} (content_type={content_type})")
 
-            # Extract content from first page and rest in parallel
+            set_progress(file_id, 10, "Matn ajratilmoqda...")
+
+            # For multi-page formats (PDF), extract first page and rest in parallel.
+            # For single-page formats (images), extract once.
             async with aiohttp.ClientSession() as session:
-                first_page_task = extraction_service.extract_pdf_content(
-                    presigned_url=presigned_url,
-                    page_range=[1, 1],
-                    do_table_structure=False,
-                    session=session,
-                )
-                rest_pages_task = extraction_service.extract_pdf_content(
-                    presigned_url=presigned_url,
-                    page_range=[2, max_page_range],
-                    do_table_structure=True,
-                    session=session,
-                )
-
-                (
-                    document_record,
-                    first_page_content,
-                    rest_pages_content,
-                ) = await asyncio.gather(db_task, first_page_task, rest_pages_task)
+                if from_format == "pdf":
+                    first_page_task = extraction_service.extract_pdf_content(
+                        presigned_url=presigned_url,
+                        page_range=[1, 1],
+                        do_table_structure=False,
+                        from_format=from_format,
+                        session=session,
+                    )
+                    rest_pages_task = extraction_service.extract_pdf_content(
+                        presigned_url=presigned_url,
+                        page_range=[2, max_page_range],
+                        do_table_structure=True,
+                        from_format=from_format,
+                        session=session,
+                    )
+                    (
+                        document_record,
+                        first_page_content,
+                        rest_pages_content,
+                    ) = await asyncio.gather(db_task, first_page_task, rest_pages_task)
+                else:
+                    extract_task = extraction_service.extract_pdf_content(
+                        presigned_url=presigned_url,
+                        from_format=from_format,
+                        session=session,
+                    )
+                    document_record, first_page_content = await asyncio.gather(
+                        db_task, extract_task
+                    )
+                    rest_pages_content = ""
 
             logger.info(
                 f"First page content length: {len(first_page_content)} characters"
@@ -103,6 +125,7 @@ async def _process_document_task_async(
 
             extract_time = time.time() - extract_start_time
             logger.info(f"Document extraction completed in {extract_time:.2f} seconds")
+            set_progress(file_id, 60, "Matn tozalanmoqda...")
 
             if not document_record:
                 logger.error(f"No Document record found for id: {file_id}")
@@ -140,6 +163,8 @@ async def _process_document_task_async(
                 if tasks_to_run == ["ocr_only"]:
                     skip_ai = True
 
+            set_progress(file_id, 75, "AI tahlil qilinmoqda..." if not skip_ai else "Natijalar saqlanmoqda...")
+
             # Run AI extraction tasks via the service (skip for ocr_only mode)
             if skip_ai:
                 meta = {}
@@ -160,10 +185,13 @@ async def _process_document_task_async(
                 "ai_processing_time": round(ai_process_time, 2),
             }
 
+            set_progress(file_id, 95, "Natijalar saqlanmoqda...")
+
             document_record.meta = meta
             document_record.status = DocumentStatus.completed
             document_record.processed_at = datetime.now(timezone.utc)
             await db.commit()
+            clear_progress(file_id)
 
             total_time = time.time() - task_start_time
             logger.info(
@@ -171,6 +199,7 @@ async def _process_document_task_async(
             )
         except BaseException as e:
             logger.error(f"Error processing document with id: {file_id}", exc_info=True)
+            clear_progress(file_id)
             if document_record:
                 document_record.status = DocumentStatus.failed
                 document_record.error_message = str(e)

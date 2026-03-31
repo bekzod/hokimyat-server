@@ -1,225 +1,349 @@
 /* ── Letters page (extends OcrPage base styles) ── */
 .letters {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
 }
 
 /* ── Mode toggle ── */
 .mode-toggle {
-  display: flex;
-  gap: 0;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--card-border);
-  width: fit-content;
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    width: fit-content;
 }
 
 .mode-btn {
-  padding: 10px 24px;
-  border: none;
-  background: var(--card-bg);
-  color: var(--text-muted);
-  font-family: var(--body);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+    padding: 10px 24px;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        color 0.2s;
 }
 
 .mode-btn.active {
-  background: var(--blue);
-  color: #fff;
+    background: var(--blue);
+    color: #fff;
 }
 
 .mode-btn:hover:not(.active) {
-  background: var(--icon-bg);
+    background: var(--icon-bg);
 }
 
 /* ── Text input ── */
 .text-input {
-  width: 100%;
-  min-height: 220px;
-  padding: 20px;
-  border: 2px solid var(--card-border);
-  border-radius: 16px;
-  background: var(--card-bg);
-  color: var(--text-heading);
-  font-family: var(--body);
-  font-size: 15px;
-  line-height: 1.6;
-  resize: vertical;
-  box-sizing: border-box;
-  transition: border-color 0.25s;
-  animation: fadeUp 0.5s ease-out;
+    width: 100%;
+    min-height: 220px;
+    padding: 20px;
+    border: 2px solid var(--card-border);
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--text-heading);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.25s;
+    animation: fadeUp 0.5s ease-out;
 }
 
 .text-input:focus {
-  outline: none;
-  border-color: var(--blue);
+    outline: none;
+    border-color: var(--blue);
 }
 
 .text-input::placeholder {
-  color: var(--text-muted);
+    color: var(--text-muted);
 }
 
 /* ── Result cards ── */
 .result-title {
-  font-family: var(--heading);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-heading);
-  margin: 0 0 20px;
+    font-family: var(--heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin: 0 0 20px;
 }
 
 .card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  animation: fadeUp 0.4s ease-out;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.4s ease-out;
 }
 
 .card h3 {
-  font-family: var(--heading);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 12px;
+    font-family: var(--heading);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 12px;
 }
 
 .summary-text {
-  font-family: var(--body);
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text-heading);
-  margin: 0;
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-heading);
+    margin: 0;
+}
+
+.official-hero {
+    background: linear-gradient(
+        135deg,
+        rgba(31, 111, 235, 0.08),
+        rgba(31, 111, 235, 0.02)
+    );
+    border-color: rgba(31, 111, 235, 0.16);
+}
+
+.official-name {
+    font-family: var(--heading);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin: 0 0 6px;
+}
+
+.official-position {
+    font-family: var(--body);
+    font-size: 15px;
+    color: var(--text-muted);
+    margin: 0;
 }
 
 /* ── Author card ── */
 .author-name {
-  font-family: var(--heading);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-heading);
-  margin: 0 0 12px;
+    font-family: var(--heading);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin: 0 0 12px;
 }
 
 .author-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
 }
 
 .author-field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .field-label {
-  font-family: var(--body);
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
 }
 
 .field-value {
-  font-family: var(--body);
-  font-size: 14px;
-  color: var(--text-heading);
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-heading);
 }
 
 /* ── Department card ── */
 .dept-name {
-  font-family: var(--heading);
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--text-heading);
-  margin: 0 0 4px;
+    font-family: var(--heading);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin: 0 0 4px;
 }
 
 .dept-position {
-  font-family: var(--body);
-  font-size: 14px;
-  color: var(--text-muted);
-  margin: 0 0 8px;
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
 }
 
 .dept-reasoning {
-  font-family: var(--body);
-  font-size: 14px;
-  color: var(--text-heading);
-  margin: 0 0 10px;
-  font-style: italic;
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-heading);
+    margin: 0 0 10px;
+    font-style: italic;
 }
 
 /* ── Issues & keywords ── */
 .issues-list {
-  font-family: var(--body);
-  font-size: 14px;
-  color: var(--text-heading);
-  padding-left: 20px;
-  margin: 0 0 10px;
-  line-height: 1.6;
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-heading);
+    padding-left: 20px;
+    margin: 0 0 10px;
+    line-height: 1.6;
 }
 
 .keywords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
 }
 
 .keyword-tag {
-  font-family: var(--body);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: var(--icon-bg);
-  color: var(--blue);
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--icon-bg);
+    color: var(--blue);
 }
 
 /* ── Meta chips ── */
 .meta-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
 }
 
 .meta-chip {
-  font-family: var(--body);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: var(--icon-bg);
-  color: var(--blue);
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--icon-bg);
+    color: var(--blue);
 }
 
 .meta-chip.repeated {
-  background: rgba(192, 57, 43, 0.1);
-  color: #c0392b;
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+}
+
+.content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.job-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--icon-bg);
+    border: 1px solid var(--card-border);
+}
+
+.job-thumb-pdf {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+}
+
+.copy-btn {
+    border: 1px solid var(--card-border);
+    background: var(--icon-bg);
+    color: var(--text-heading);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: rgba(31, 111, 235, 0.12);
+    border-color: rgba(31, 111, 235, 0.24);
+    color: var(--blue);
+}
+
+.letter-content {
+    margin: 0;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-heading);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+}
+
+.history-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.history-chevron {
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--blue);
+    white-space: nowrap;
+}
+
+.history-detail {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--card-border);
 }
 
 /* ── Analysis inside job card ── */
 .job-result-analysis {
-  margin-top: 12px;
+    margin-top: 12px;
 }
 
 .job-result-analysis .card {
-  background: var(--bg);
+    background: var(--bg);
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -8,7 +8,7 @@ concerns out of the service layer.
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import DocumentNotFoundException
@@ -90,6 +90,16 @@ class DocumentRepository:
             doc.manual_input[field] = field_data
         doc.updated_at = datetime.now(timezone.utc)
         return doc
+
+    async def list_recent(self, limit: int = 50, offset: int = 0) -> list[Document]:
+        """List recent documents ordered by creation date descending."""
+        result = await self.session.execute(
+            select(Document)
+            .order_by(desc(Document.created_at))
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
 
     async def commit(self) -> None:
         """Commit the current transaction."""

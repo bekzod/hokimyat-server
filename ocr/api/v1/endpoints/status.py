@@ -10,6 +10,7 @@ import logging
 
 from api.deps import get_document_service
 from core.exceptions import DocumentNotFoundException, ValidationException
+from core.progress import get_progress
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from models.pdf import DocumentStatus
@@ -47,6 +48,12 @@ async def check_status(
             else None
         ),
     }
+
+    if document_record.status.value == "processing":
+        progress = get_progress(document_record.uuid)
+        if progress:
+            response["progress"] = progress["percent"]
+            response["progress_stage"] = progress["stage"]
 
     if document_record.processed_at:
         response["processed_at"] = document_record.processed_at.isoformat()

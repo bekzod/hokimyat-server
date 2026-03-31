@@ -6,6 +6,7 @@ Preserves the same URL paths as master:
   POST /api/upload-document/
 """
 
+import asyncio
 import logging
 import time
 
@@ -48,9 +49,10 @@ async def upload_document(
         logger.error(f"Storage error: {e}")
         raise HTTPException(status_code=500, detail="Failed to upload file to storage")
 
-    # Queue the background processing task
-    process_document_task.apply_async(
-        args=[document_record.uuid, tasks, task_start_time]
+    # Queue the background processing task (run in thread to avoid blocking the event loop)
+    await asyncio.to_thread(
+        process_document_task.apply_async,
+        args=[document_record.uuid, tasks, task_start_time],
     )
 
     return JSONResponse(

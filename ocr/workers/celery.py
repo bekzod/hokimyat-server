@@ -1,19 +1,18 @@
 """
 Celery Configuration — background task queue setup.
 
-Uses Redis as broker with SSL support.
+Uses Redis as broker, with SSL support when the URL uses rediss://.
 """
 
 from celery import Celery
 
 from core.config import get_settings
 
-# Build Redis URL with SSL options from centralized settings
 redis_url = get_settings().redis_url
-redis_url = f"{redis_url}?ssl_cert_reqs=CERT_NONE"
 
-if not redis_url.startswith("rediss://"):
-    redis_url = redis_url.replace("redis://", "rediss://")
+# Only add SSL options when the URL explicitly uses rediss://
+if redis_url.startswith("rediss://"):
+    redis_url = f"{redis_url}?ssl_cert_reqs=CERT_NONE"
 
 celery_app = Celery("worker", broker=redis_url)
 

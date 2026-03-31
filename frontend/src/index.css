@@ -11,6 +11,7 @@
   --card-bg: #ffffff;
   --card-border: #e2ddd4;
   --icon-bg: rgba(27, 58, 92, 0.07);
+  --icon-color: var(--blue);
 
   --text-heading: #1a1a1a;
   --text-muted: #6b6560;
@@ -26,12 +27,23 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+[data-theme="dark"] {
+  --bg: #111318;
+  --card-bg: #1a1d24;
+  --card-border: #2a2d36;
+  --icon-bg: rgba(200, 169, 81, 0.12);
+  --icon-color: #5b9bd5;
+  --text-heading: #eee9e0;
+  --text-muted: #8a8580;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #111318;
     --card-bg: #1a1d24;
     --card-border: #2a2d36;
-    --icon-bg: rgba(200, 169, 81, 0.1);
+    --icon-bg: rgba(200, 169, 81, 0.12);
+    --icon-color: #5b9bd5;
     --text-heading: #eee9e0;
     --text-muted: #8a8580;
   }

@@ -45,23 +45,38 @@ MAX_WORDS_LIMIT = 20500
 _CLIENT_TIMEOUT = aiohttp.ClientTimeout(total=360)
 
 
-def _build_extraction_options(settings) -> dict:
-    """Build default PDF extraction options using current settings.
+# Map MIME types to Docling from_formats values
+_MIME_TO_FORMAT = {
+    "application/pdf": "pdf",
+    "image/png": "image",
+    "image/jpeg": "image",
+    "image/tiff": "image",
+    "image/bmp": "image",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+}
+
+
+def content_type_to_format(content_type: str | None) -> str:
+    """Convert a MIME content type to a Docling from_formats value."""
+    return _MIME_TO_FORMAT.get(content_type or "", "pdf")
+
+
+def _build_extraction_options(settings, from_format: str = "pdf") -> dict:
+    """Build extraction options using current settings.
 
     Uses force_ocr=True and MAX_PAGE_RANGE from config (default 50)
     so scanned PDFs are properly OCR'd and all pages are processed.
     """
-    return {
+    opts = {
         "image_export_mode": "placeholder",
         "force_ocr": True,
-        "from_formats": ["pdf"],
+        "from_formats": [from_format],
         "to_formats": ["md"],
         "ocr": True,
         "ocr_engine": "tesseract",
         "ocr_lang": ["uzb_cyrl", "uzb"],
         "table_mode": "fast",
         "pipeline": "standard",
-        "page_range": [1, settings.max_page_range],
         "abort_on_error": True,
         "do_table_structure": True,
         "include_images": False,
@@ -73,6 +88,10 @@ def _build_extraction_options(settings) -> dict:
         "do_picture_description": False,
         "picture_description_area_threshold": 0.05,
     }
+    # page_range only applies to multi-page formats (PDF)
+    if from_format == "pdf":
+        opts["page_range"] = [1, settings.max_page_range]
+    return opts
 
 
 class ExtractionService:
@@ -86,7 +105,7 @@ class ExtractionService:
     def __init__(self):
         settings = get_settings()
         self.docling_host = settings.docling_host
-        self._default_options = _build_extraction_options(settings)
+        self._settings = settings
         self._max_page_range = settings.max_page_range
 
     async def extract_pdf_content(
@@ -94,13 +113,14 @@ class ExtractionService:
         presigned_url: str,
         page_range: Optional[List[int]] = None,
         do_table_structure: bool = True,
+        from_format: str = "pdf",
         session: Optional[aiohttp.ClientSession] = None,
     ) -> str:
-        """Extract markdown content from PDF via Docling."""
+        """Extract markdown content from a document via Docling."""
         url = f"{self.docling_host}/v1/convert/source"
 
-        extraction_options = self._default_options.copy()
-        if page_range:
+        extraction_options = _build_extraction_options(self._settings, from_format)
+        if page_range and from_format == "pdf":
             extraction_options["page_range"] = page_range
             logger.info(f"Using custom page_range: {page_range}")
         if do_table_structure is not None:
