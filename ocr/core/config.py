@@ -28,8 +28,6 @@ class Settings(BaseSettings):
 
     openai_api_base_url: str = ""
     openai_api_key: str = ""
-    default_models: str = ""
-
 
     # Docling
     docling_host: str = "http://docling:5001"
