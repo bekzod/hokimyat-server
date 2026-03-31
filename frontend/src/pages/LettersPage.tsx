@@ -45,6 +45,7 @@ interface AnalysisResult {
   entity?: { entity_type?: string };
   is_repeated?: boolean;
   repeated_dates?: string[];
+  document_type?: string;
 }
 
 interface HistoryDoc {
@@ -73,6 +74,7 @@ interface LetterJob {
   content: string;
   result: AnalysisResult | null;
   error: string;
+  fileId: string | null;
 }
 
 let jobCounter = 0;
@@ -90,6 +92,7 @@ function createJob(file: File): LetterJob {
     content: "",
     result: null,
     error: "",
+    fileId: null,
   };
 }
 
@@ -191,7 +194,7 @@ export default function LettersPage() {
       xhr.addEventListener("load", () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           const data = JSON.parse(xhr.responseText);
-          updateJob(job.id, { status: "processing" });
+          updateJob(job.id, { status: "processing", fileId: data.file_id });
           pollStatus(job.id, data.file_id);
         } else {
           let msg = `Server xatosi: ${xhr.status}`;
@@ -433,6 +436,7 @@ export default function LettersPage() {
                         <AnalysisDisplay
                           result={job.result}
                           content={job.content}
+                          fileId={job.fileId}
                         />
                       </div>
                     )}
@@ -516,6 +520,7 @@ export default function LettersPage() {
                                   historyDetails[doc.file_id]?.result || {}
                                 }
                                 content={historyDetails[doc.file_id]?.content}
+                                fileId={doc.file_id}
                               />
                             )}
                         </div>
@@ -605,12 +610,46 @@ export default function LettersPage() {
 function AnalysisDisplay({
   result,
   content,
+  fileId,
 }: {
   result: AnalysisResult;
   content?: string;
+  fileId?: string | null;
 }) {
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
     <>
+      {fileId && (
+        <section className="card">
+          <div className="content-header">
+            <h3>Asl hujjat</h3>
+            <div className="preview-actions">
+              <button
+                className="copy-btn"
+                onClick={() => setShowPreview(!showPreview)}
+                type="button"
+              >
+                {showPreview ? "Yopish" : "Ko'rish"}
+              </button>
+              <a
+                href={`/api/file/${fileId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="copy-btn"
+              >
+                Yuklab olish
+              </a>
+            </div>
+          </div>
+          {showPreview && (
+            <div className="file-preview">
+              <FilePreview fileId={fileId} />
+            </div>
+          )}
+        </section>
+      )}
+
       {(result.department?.full_name || result.department?.position) && (
         <section className="card official-hero">
           <h3>Mas'ul xodim</h3>
@@ -669,6 +708,9 @@ function AnalysisDisplay({
         )}
 
       <div className="meta-row">
+        {result.document_type && (
+          <div className="meta-chip">{result.document_type}</div>
+        )}
         {result.entity?.entity_type && (
           <div className="meta-chip">
             {result.entity.entity_type === "individual"
@@ -791,6 +833,40 @@ function DepartmentCard({ dept }: { dept: Department }) {
       )}
     </div>
   );
+}
+
+function FilePreview({ fileId }: { fileId: string }) {
+  const [fileType, setFileType] = useState<"pdf" | "image" | "unknown">(
+    "unknown",
+  );
+  const url = `/api/file/${fileId}`;
+
+  useEffect(() => {
+    fetch(url, { method: "HEAD" })
+      .then((res) => {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("pdf")) setFileType("pdf");
+        else if (ct.startsWith("image/")) setFileType("image");
+        else setFileType("unknown");
+      })
+      .catch(() => setFileType("unknown"));
+  }, [url]);
+
+  if (fileType === "pdf") {
+    return (
+      <iframe
+        src={url}
+        className="file-preview-frame"
+        title="PDF preview"
+      />
+    );
+  }
+
+  if (fileType === "image") {
+    return <img src={url} className="file-preview-image" alt="Document" />;
+  }
+
+  return <p className="file-preview-loading">Yuklanmoqda...</p>;
 }
 
 function CopyButton({ text }: { text: string }) {

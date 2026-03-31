@@ -370,6 +370,28 @@
   overflow-y: auto;
 }
 
+/* ── File preview toggle ── */
+.file-preview-toggle {
+  margin-bottom: 8px;
+}
+
+.preview-link {
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+  padding: 4px 12px;
+  border: 1px solid rgba(31, 111, 235, 0.24);
+  border-radius: 6px;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+.preview-link:hover {
+  background: rgba(31, 111, 235, 0.08);
+}
+
 /* ── Upload button ── */
 .upload-btn {
   display: inline-flex;

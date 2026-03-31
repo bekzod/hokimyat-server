@@ -22,9 +22,10 @@ from core.config import get_settings
 from library.ai import (
     check_for_repeated_request,
     extract_author_information,
+    extract_issues,
     get_entity_type,
+    select_department,
     select_document_type,
-
     summarize,
 )
 
@@ -36,6 +37,9 @@ DEFAULT_TASKS = [
     "summary",
     "repeated_info",
     "entity_type",
+    "issues",
+    "department",
+    "document_type",
 ]
 
 # Maximum word limit for content processing
@@ -75,7 +79,7 @@ def _build_extraction_options(settings, from_format: str = "pdf") -> dict:
         "ocr": True,
         "ocr_engine": "tesseract",
         "ocr_lang": ["uzb_cyrl", "uzb"],
-        "table_mode": "fast",
+        "table_mode": "accurate",
         "pipeline": "standard",
         "abort_on_error": True,
         "do_table_structure": True,
@@ -213,6 +217,10 @@ class ExtractionService:
             tasks.append(("entity_type", get_entity_type, first_page_content))
         if "repeated_info" in tasks_to_run:
             tasks.append(("repeated", check_for_repeated_request, content))
+        if "issues" in tasks_to_run:
+            tasks.append(("issues", extract_issues, content))
+        if "department" in tasks_to_run:
+            tasks.append(("department", select_department, content))
 
         # Calculate concurrency — same logic as master's app/tasks.py
         num_tasks = len(tasks)
@@ -252,6 +260,8 @@ class ExtractionService:
             ),
             "entity": results.get("entity_type"),
             "document_type": results.get("document_type"),
+            "issues": results.get("issues"),
+            "department": results.get("department"),
             "errors": errors or None,
         }
 

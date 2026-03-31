@@ -300,6 +300,43 @@
     overflow-x: auto;
 }
 
+.history-section {
+    margin-top: 32px;
+}
+
+.history-heading {
+    font-family: var(--heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 12px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.history-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.history-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .history-toggle {
     width: 100%;
     display: flex;
@@ -335,6 +372,42 @@
 
 .job-result-analysis .card {
     background: var(--bg);
+}
+
+/* ── File preview ── */
+.preview-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.file-preview {
+    margin-top: 12px;
+}
+
+.file-preview-frame {
+    width: 100%;
+    height: 600px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--bg);
+}
+
+.file-preview-image {
+    width: 100%;
+    max-height: 800px;
+    object-fit: contain;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--bg);
+}
+
+.file-preview-loading {
+    font-family: var(--body);
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+    padding: 20px;
+    text-align: center;
 }
 
 @keyframes fadeUp {

@@ -234,6 +234,18 @@ export default function OcrPage() {
                 {job.status === 'completed' && (
                   <div className="job-result">
                     {job.pageCount > 0 && <span className="page-badge">{job.pageCount} sahifa</span>}
+                    {job.fileId && (
+                      <div className="file-preview-toggle">
+                        <a
+                          href={`/api/file/${job.fileId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="preview-link"
+                        >
+                          Asl hujjatni ko'rish
+                        </a>
+                      </div>
+                    )}
                     <pre className="result-content">{job.content}</pre>
                   </div>
                 )}
