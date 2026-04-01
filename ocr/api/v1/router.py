@@ -6,7 +6,7 @@ Mounted at /api/ in main.py to preserve backward compatibility.
 
 from fastapi import APIRouter
 
-from .endpoints import upload, status, health, analyze, documents, file
+from .endpoints import upload, status, health, analyze, documents, file, officials
 
 api_router = APIRouter()
 
@@ -27,3 +27,6 @@ api_router.include_router(documents.router, tags=["documents"])
 
 # /api/file/{file_id}
 api_router.include_router(file.router, tags=["file"])
+
+# /api/officials/
+api_router.include_router(officials.router, tags=["officials"])

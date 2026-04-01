@@ -1,0 +1,256 @@
+/* ── Layout ── */
+.officials {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ── Nav ── */
+.officials-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--blue-deep);
+  color: #fff;
+}
+
+.officials-nav .back-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold-light);
+  text-decoration: none;
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.officials-nav .back-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+.officials-nav .back-link:hover {
+  color: #fff;
+}
+
+.nav-title {
+  font-family: var(--heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ── Header ── */
+.officials-header {
+  text-align: center;
+  padding: 40px 24px 32px;
+  background: linear-gradient(180deg, var(--blue-deep) 0%, var(--blue) 100%);
+  color: #fff;
+}
+
+.officials-header h1 {
+  font-family: var(--heading);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.officials-header p {
+  font-family: var(--body);
+  font-size: 15px;
+  color: var(--gold-light);
+  margin: 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── Main ── */
+.officials-main {
+  flex: 1;
+  padding: 32px 24px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── Loading / Error ── */
+.officials-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--card-border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.officials-error {
+  text-align: center;
+  padding: 32px;
+  color: #c0392b;
+  font-family: var(--body);
+}
+
+/* ── Officials list ── */
+.officials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.official-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  animation: cardIn 0.35s ease-out both;
+}
+
+.official-card:nth-child(1) { animation-delay: 0.03s; }
+.official-card:nth-child(2) { animation-delay: 0.06s; }
+.official-card:nth-child(3) { animation-delay: 0.09s; }
+.official-card:nth-child(4) { animation-delay: 0.12s; }
+.official-card:nth-child(5) { animation-delay: 0.15s; }
+.official-card:nth-child(6) { animation-delay: 0.18s; }
+.official-card:nth-child(7) { animation-delay: 0.21s; }
+.official-card:nth-child(8) { animation-delay: 0.24s; }
+.official-card:nth-child(9) { animation-delay: 0.27s; }
+.official-card:nth-child(10) { animation-delay: 0.30s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.official-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(27, 58, 92, 0.1);
+  border-color: var(--gold);
+}
+
+/* ── Order badge ── */
+.official-order {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--icon-bg);
+  color: var(--icon-color);
+  font-family: var(--heading);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── Info ── */
+.official-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.official-name {
+  font-family: var(--heading);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-heading);
+}
+
+.official-position {
+  font-family: var(--body);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+/* ── Meta (date) ── */
+.official-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.official-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--body);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.official-date svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+/* ── Tags ── */
+.official-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--icon-bg);
+  color: var(--icon-color);
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .officials-header {
+    padding: 28px 16px 24px;
+  }
+
+  .officials-header h1 {
+    font-size: 22px;
+  }
+
+  .officials-main {
+    padding: 20px 16px;
+  }
+
+  .official-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .official-order {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
