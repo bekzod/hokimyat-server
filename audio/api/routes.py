@@ -1,10 +1,14 @@
+import asyncio
+import json
 import uuid
 import logging
 from datetime import datetime
 
+import numpy as np
 from fastapi import APIRouter, UploadFile, File, WebSocket, WebSocketDisconnect
 
 import storage
+from transcription.service import get_service
 
 logger = logging.getLogger(__name__)
 
@@ -153,5 +157,93 @@ async def audio_stream(ws: WebSocket):
         logger.exception("WebSocket stream error for session %s", session_id)
         try:
             await ws.send_json({"type": "error", "message": "Server xatosi"})
+        except Exception:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Transcription endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    """Transcribe an uploaded audio file (non-realtime, uses onnx_asr)."""
+    service = get_service()
+    data = await file.read()
+    result = await service.transcribe_file(data, file.filename or "audio.wav")
+    return result
+
+
+@router.websocket("/transcribe/stream")
+async def transcribe_stream(ws: WebSocket):
+    """Realtime streaming transcription over WebSocket.
+
+    Protocol
+    --------
+    1. Server  -> {"type": "ready", "session_id": "..."}
+    2. Client  -> binary frames: PCM-16 LE, 16 kHz, mono
+    3. Server  -> {"type": "partial", "text": "..."} as speech is recognised
+       Server  -> {"type": "utterance", "text": "...", "index": N} on silence
+    4. Client  -> {"type": "stop"} (text frame) to end
+    5. Server  -> {"type": "done", "session_id": "...", "utterances": [...]}
+    """
+    await ws.accept()
+    session_id = str(uuid.uuid4())
+    service = get_service()
+
+    if not service.streaming_ready:
+        await ws.send_json({"type": "error", "message": "Streaming model not loaded"})
+        await ws.close()
+        return
+
+    session = service.create_streaming_session()
+    logger.info("Transcription stream %s started", session_id)
+
+    try:
+        await ws.send_json({"type": "ready", "session_id": session_id})
+
+        while True:
+            message = await ws.receive()
+
+            if message.get("type") == "websocket.disconnect":
+                break
+
+            # Binary audio data — PCM-16 little-endian, 16 kHz, mono
+            if "bytes" in message and message["bytes"]:
+                pcm_bytes = message["bytes"]
+                pcm_int16 = np.frombuffer(pcm_bytes, dtype=np.int16)
+                pcm_float32 = pcm_int16.astype(np.float32) / 32768.0
+
+                events = await asyncio.to_thread(session.process_audio, pcm_float32)
+                for event in events:
+                    await ws.send_json(event)
+
+            # Text control messages
+            if "text" in message and message["text"]:
+                try:
+                    msg = json.loads(message["text"])
+                except json.JSONDecodeError:
+                    continue
+                if msg.get("type") == "stop":
+                    break
+
+        # Flush remaining audio
+        events = await asyncio.to_thread(session.finalize)
+        for event in events:
+            await ws.send_json(event)
+
+        await ws.send_json({
+            "type": "done",
+            "session_id": session_id,
+            "utterances": session.utterances,
+        })
+
+    except WebSocketDisconnect:
+        logger.info("Transcription stream %s disconnected", session_id)
+    except Exception:
+        logger.exception("Transcription stream error for session %s", session_id)
+        try:
+            await ws.send_json({"type": "error", "message": "Transcription xatosi"})
         except Exception:
             pass

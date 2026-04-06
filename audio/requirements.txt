@@ -6,3 +6,13 @@ pydantic==2.9.2
 pydantic-settings==2.7.1
 websockets==14.2
 python-dotenv==1.1.0
+
+# Transcription
+numpy
+onnxruntime
+onnx-asr
+sentencepiece
+torch
+nemo_toolkit[asr]
+pyyaml
+huggingface_hub
