@@ -9,7 +9,6 @@ from pathlib import Path
 
 import yaml
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -22,4 +21,4 @@ DATA_PATH = Path(__file__).resolve().parents[3] / "data" / "toshkent-tumani-offi
 async def list_officials():
     with open(DATA_PATH, encoding="utf-8") as f:
         officials = yaml.safe_load(f)
-    return JSONResponse(content=officials)
+    return officials

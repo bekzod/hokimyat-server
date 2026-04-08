@@ -484,6 +484,51 @@
   height: 20px;
 }
 
+/* ── Error state ── */
+.meeting-main .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 24px;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.meeting-main .error-state svg {
+  width: 56px;
+  height: 56px;
+  color: #c0392b;
+}
+
+.meeting-main .error-state p {
+  font-family: var(--body);
+  font-size: 16px;
+  color: #c0392b;
+  margin: 0;
+  text-align: center;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+.meeting-main .retry-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-heading);
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-top: 8px;
+}
+
+.meeting-main .retry-btn:hover {
+  border-color: var(--blue);
+  background: var(--icon-bg);
+}
+
 /* ── Reuse base animations/styles ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }

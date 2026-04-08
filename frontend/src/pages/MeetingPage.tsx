@@ -145,10 +145,25 @@ export default function MeetingPage() {
   }
 
   const startRecording = async () => {
+    // 1. Request microphone access (separate try so only mic errors say "mic denied")
+    let stream: MediaStream
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      streamRef.current = stream
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch (err) {
+      const e = err as DOMException
+      if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+        setError("Mikrofonga ruxsat berilmadi")
+      } else if (e.name === 'NotFoundError') {
+        setError("Mikrofon topilmadi")
+      } else {
+        setError("Mikrofonni ishga tushirib bo'lmadi")
+      }
+      setStatus('error')
+      return
+    }
+    streamRef.current = stream
 
+    try {
       // Audio level visualization
       const audioCtx = new AudioContext()
       audioCtxRef.current = audioCtx
@@ -168,11 +183,18 @@ export default function MeetingPage() {
       }
       updateLevel()
 
-      // Connect WebSocket for real-time streaming
+      // 2. Connect WebSocket for real-time streaming
       const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
       const ws = new WebSocket(`${wsProto}//${window.location.host}/api/meeting/stream`)
       wsRef.current = ws
 
+      // Wait for WebSocket to be ready before starting MediaRecorder
+      await new Promise<void>((resolve, reject) => {
+        ws.onopen = () => resolve()
+        ws.onerror = () => reject(new Error('WebSocket connection failed'))
+      })
+
+      // After open: install runtime handlers
       ws.onmessage = (evt) => {
         try {
           const msg = JSON.parse(evt.data)
@@ -198,20 +220,7 @@ export default function MeetingPage() {
         cleanup()
       }
 
-      ws.onclose = () => {
-        // if we're still recording, it means unexpected disconnect
-        if (status === 'recording') {
-          // state might have already transitioned
-        }
-      }
-
-      // Wait for WebSocket to be ready before starting MediaRecorder
-      await new Promise<void>((resolve, reject) => {
-        ws.onopen = () => resolve()
-        ws.onerror = () => reject(new Error('WebSocket failed'))
-      })
-
-      // Start MediaRecorder and stream chunks via WebSocket
+      // 3. Start MediaRecorder and stream chunks via WebSocket
       const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
       recorder.ondataavailable = async (e) => {
         if (e.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -230,8 +239,13 @@ export default function MeetingPage() {
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1)
       }, 1000)
-    } catch {
-      setError("Mikrofonga ruxsat berilmadi")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('WebSocket')) {
+        setError("Server bilan ulanish o'rnatilmadi")
+      } else {
+        setError("Yozishni boshlashda xatolik yuz berdi")
+      }
       setStatus('error')
       cleanup()
     }
