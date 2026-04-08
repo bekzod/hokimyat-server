@@ -183,18 +183,44 @@ export default function MeetingPage() {
       }
       updateLevel()
 
-      // 2. Connect WebSocket for real-time streaming
+      // 2. Start MediaRecorder immediately. Buffer chunks until WS opens, then flush.
+      const pendingChunks: ArrayBuffer[] = []
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      recorder.ondataavailable = async (e) => {
+        if (e.data.size === 0) return
+        const buffer = await e.data.arrayBuffer()
+        const ws = wsRef.current
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(buffer)
+        } else {
+          pendingChunks.push(buffer)
+        }
+      }
+      recorder.start(250)
+      mediaRecorderRef.current = recorder
+
+      // 3. Update UI to "recording" immediately — user can stop anytime
+      setStatus('recording')
+      setRecordingTime(0)
+      setStreamBytes(0)
+
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1)
+      }, 1000)
+
+      // 4. Connect WebSocket for real-time streaming (in background)
       const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
       const ws = new WebSocket(`${wsProto}//${window.location.host}/api/meeting/stream`)
       wsRef.current = ws
 
-      // Wait for WebSocket to be ready before starting MediaRecorder
-      await new Promise<void>((resolve, reject) => {
-        ws.onopen = () => resolve()
-        ws.onerror = () => reject(new Error('WebSocket connection failed'))
-      })
+      ws.onopen = () => {
+        // Flush any chunks that were buffered before WS was ready
+        while (pendingChunks.length > 0) {
+          const chunk = pendingChunks.shift()
+          if (chunk) ws.send(chunk)
+        }
+      }
 
-      // After open: install runtime handlers
       ws.onmessage = (evt) => {
         try {
           const msg = JSON.parse(evt.data)
@@ -210,42 +236,18 @@ export default function MeetingPage() {
           } else if (msg.type === 'error') {
             setError(msg.message || 'Server xatosi')
             setStatus('error')
+            cleanup()
           }
         } catch { /* ignore non-json */ }
       }
 
       ws.onerror = () => {
-        setError("WebSocket ulanishida xatolik")
+        setError("Server bilan ulanish o'rnatilmadi")
         setStatus('error')
         cleanup()
       }
-
-      // 3. Start MediaRecorder and stream chunks via WebSocket
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
-      recorder.ondataavailable = async (e) => {
-        if (e.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
-          const buffer = await e.data.arrayBuffer()
-          wsRef.current.send(buffer)
-        }
-      }
-      // Send chunks every 250ms for near-real-time streaming
-      recorder.start(250)
-      mediaRecorderRef.current = recorder
-
-      setStatus('recording')
-      setRecordingTime(0)
-      setStreamBytes(0)
-
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1)
-      }, 1000)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (msg.includes('WebSocket')) {
-        setError("Server bilan ulanish o'rnatilmadi")
-      } else {
-        setError("Yozishni boshlashda xatolik yuz berdi")
-      }
+    } catch {
+      setError("Yozishni boshlashda xatolik yuz berdi")
       setStatus('error')
       cleanup()
     }
