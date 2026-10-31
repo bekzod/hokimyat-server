@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     minio_secret_key: str = "minioadmin123"
     audio_bucket: str = "meeting-audio"
 
+    storage_provider: str = "minio"
+    r2_endpoint: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_audio_bucket: str = ""
+
     # Server
     log_level: str = "INFO"
 
@@ -42,3 +48,4 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+

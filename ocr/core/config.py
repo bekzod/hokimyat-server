@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     minio_secret_key: str = "minioadmin123"
     minio_uploads_bucket: str = "ocr-server-uploads"
 
+    storage_provider: str = "minio"
+    r2_endpoint: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = ""
+
     # Redis / Celery
     redis_url: str
 
@@ -48,3 +54,4 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached application settings."""
     return Settings()
+

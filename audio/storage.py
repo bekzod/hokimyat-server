@@ -7,6 +7,7 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 
 from config import get_settings
+from storage_config import storage_options
 
 logger = logging.getLogger(__name__)
 
@@ -17,29 +18,32 @@ def _get_s3():
     global _client
     if _client is None:
         s = get_settings()
+        options = storage_options(s, legacy_bucket=s.audio_bucket, r2_bucket_attribute="r2_audio_bucket")
         _client = boto3.client(
             "s3",
-            endpoint_url=s.minio_endpoint,
-            aws_access_key_id=s.minio_access_key,
-            aws_secret_access_key=s.minio_secret_key,
+            endpoint_url=options["endpoint_url"],
+            aws_access_key_id=options["access_key"],
+            aws_secret_access_key=options["secret_key"],
             config=Config(
                 signature_version="s3v4",
-                region_name="us-east-1",
+                region_name=options["region"],
                 s3={"addressing_style": "path"},
             ),
-            verify=False,
+            verify=options["verify_ssl"],
         )
-        # ensure bucket
-        try:
-            _client.head_bucket(Bucket=s.audio_bucket)
-        except ClientError:
-            _client.create_bucket(Bucket=s.audio_bucket)
-            logger.info("Created bucket %s", s.audio_bucket)
+        # Preserve local MinIO provisioning only; R2 buckets are operator-managed.
+        if options["ensure_bucket"]:
+            try:
+                _client.head_bucket(Bucket=s.audio_bucket)
+            except ClientError:
+                _client.create_bucket(Bucket=s.audio_bucket)
+                logger.info("Created bucket %s", s.audio_bucket)
     return _client
 
 
 def _bucket() -> str:
-    return get_settings().audio_bucket
+    s = get_settings()
+    return storage_options(s, legacy_bucket=s.audio_bucket, r2_bucket_attribute="r2_audio_bucket")["bucket_name"]
 
 
 async def upload_audio(key: str, data: bytes, content_type: str = "audio/webm", metadata: Optional[dict] = None) -> str:
@@ -82,3 +86,4 @@ async def get_presigned_url(key: str, expires: int = 3600) -> str:
         Params={"Bucket": _bucket(), "Key": key},
         ExpiresIn=expires,
     )
+
