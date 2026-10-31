@@ -20,7 +20,9 @@ class MinIOStorage:
         secret_key: str,
         bucket_name: str,
         secure: bool = False,
-        region: str = "us-east-1"
+        region: str = "us-east-1",
+        verify_ssl: bool = False,
+        ensure_bucket: bool = True,
     ):
         """
         Initialize MinIO storage client.
@@ -50,11 +52,12 @@ class MinIOStorage:
                 region_name=self.region,
                 s3={'addressing_style': 'path'}
             ),
-            verify=False  # MinIO typically uses self-signed certificates
+            verify=verify_ssl
         )
 
         # Ensure bucket exists
-        self._ensure_bucket_exists()
+        if ensure_bucket:
+            self._ensure_bucket_exists()
 
     def _ensure_bucket_exists(self) -> None:
         """Create bucket if it doesn't exist."""
@@ -406,11 +409,10 @@ def get_storage() -> MinIOStorage:
     global _storage_instance
     if _storage_instance is None:
         from core.config import get_settings
+        from core.storage_config import storage_options
         settings = get_settings()
         _storage_instance = MinIOStorage(
-            endpoint_url=settings.minio_endpoint,
-            access_key=settings.minio_access_key,
-            secret_key=settings.minio_secret_key,
-            bucket_name=settings.minio_uploads_bucket,
+            **storage_options(settings, legacy_bucket=settings.minio_uploads_bucket),
         )
     return _storage_instance
+
